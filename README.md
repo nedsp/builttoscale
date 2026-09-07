@@ -6,6 +6,7 @@ dependencies. Open `index.html` in a browser and it works.
 ```
 index.html          structure + all long-form copy (quality, comparison, FAQ)
 partner/index.html  generated copy of index.html — see below, do not hand-edit
+.githooks/          pre-commit hook that keeps that copy in step
 styles.css          brand tokens + all page styles
 script.js           editable data (packages, clients, stats) + behaviour
 .nojekyll           tells GitHub Pages to serve the files as-is
@@ -138,14 +139,29 @@ the password will never match.
 except that its six `./` paths point one level up to `../`. GitHub Pages
 cannot rewrite URLs, so partner mode needs a real page at that address.
 
-**Edit `index.html`, never `partner/index.html`.** After any change to
-`index.html`, regenerate the copy:
+**Edit `index.html`, never `partner/index.html`.**
+
+A pre-commit hook keeps the copy in step for you, so in normal use you can
+forget it exists. **Turn it on once per clone** — Git does not ship hook
+settings with a repository:
+
+```bash
+git config core.hooksPath .githooks
+```
+
+From then on, any commit that includes `index.html` regenerates
+`partner/index.html` from the staged version and adds it to the same
+commit. It prints one line when it fires and stays silent otherwise.
+
+If you ever need to do it by hand — or you edited `index.html` through
+GitHub's web editor, which never runs a local hook:
 
 ```bash
 sed 's|"\./|"../|g' index.html > partner/index.html
 ```
 
-Check they still match — this should print nothing but the six path lines:
+To check the two are in step, this should print the six path lines and
+nothing else:
 
 ```bash
 diff index.html partner/index.html

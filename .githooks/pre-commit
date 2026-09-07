@@ -1,0 +1,28 @@
+#!/bin/sh
+# partner/index.html is a generated copy of index.html with its ./ paths
+# bumped to ../ (GitHub Pages cannot rewrite /partner). This regenerates it
+# whenever index.html is part of a commit, so the two cannot drift apart.
+#
+# Enabled per clone with:  git config core.hooksPath .githooks
+
+# Nothing to do unless index.html is staged.
+if git diff --cached --quiet -- index.html; then
+  exit 0
+fi
+
+# ...or if this commit deletes it.
+if ! git cat-file -e :index.html 2>/dev/null; then
+  exit 0
+fi
+
+mkdir -p partner
+
+# Generate from the STAGED index.html, not the working copy, so the commit
+# is self-consistent even with unstaged edits in flight.
+if ! git show :index.html | sed 's|"\./|"../|g' > partner/index.html; then
+  echo "pre-commit: could not regenerate partner/index.html" >&2
+  exit 1
+fi
+
+git add partner/index.html
+echo "pre-commit: regenerated partner/index.html from index.html"
