@@ -6,7 +6,7 @@
 /* ─────────────────── EDIT HERE ─────────────────── */
 
 /* Client strip. Replace these six placeholders with real names. */
-const CLIENTS = ['Client One','Client Two','Client Three','Client Four','Client Five','Client Six'];
+const CLIENTS = ['CoachedByCem','TheSellerSupport','RCGFitness','RioVella','TransitionOnline'];
 
 /* Optional logos in assets/logos/. A non-empty list replaces the names above.
    e.g. [{ file:'acme.svg', name:'Acme' }] */
@@ -61,12 +61,13 @@ const PACKAGES = [
   }
 ];
 
-/* IN NUMBERS. value: null renders the literal placeholder "[X]" and skips the
-   count-up. Put a number in and it counts from 0 on scroll. */
+/* IN NUMBERS. Each counts up from 0 when it scrolls into view. Setting a
+   value back to null renders the literal placeholder "[X]" and skips the
+   count-up. */
 const STATS = [
-  { value: null, suffix: '+', label: 'videos delivered' },
-  { value: null, suffix: '',  label: 'day average turnaround' },
-  { value: null, suffix: '+', label: 'clients served' }
+  { value: 500, suffix: '+', label: 'videos delivered' },
+  { value: 3,   suffix: '',  label: 'day average turnaround' },
+  { value: 50,  suffix: '+', label: 'clients served' }
 ];
 
 /* SHA-256 of the partner password. This only hides partner pricing from
