@@ -10,6 +10,9 @@
   --grey:       #626868;
   --cream:      #F2E8CF;
   --surface:    #FFFFFF;   /* cards and inactive pills only */
+  /* Brand red is 3.3:1 on the black card — too low for the small partner
+     label. This tint of the same hue clears AA there (5.7:1). */
+  --red-on-black: #ED5140;
 
   --hair:  rgba(2,4,2,.08);
   --hair2: rgba(2,4,2,.10);   /* card edges — white on warm-white needs it */
@@ -91,6 +94,11 @@ body {
 .skip-link:focus { transform: translateY(0); }
 
 /* ── Primitives ─────────────────────────────────────────────── */
+/* ── Standard / partner mode ── both copies ship, CSS picks one ── */
+[data-when] { display: none; }
+[data-mode="standard"] [data-when="standard"],
+[data-mode="partner"]  [data-when="partner"] { display: revert; }
+
 .wrap { width: 100%; max-width: var(--maxw); margin-inline: auto; padding-inline: var(--pad); }
 
 .eyebrow {
@@ -146,6 +154,23 @@ body {
 }
 .bar__nav a:hover, .bar__nav a.is-active { color: var(--red); }
 @media (max-width: 767px) { .bar__wide { display: none; } }
+
+.bar__pill {
+  padding: 6px 14px; border-radius: 999px; cursor: pointer;
+  font-size: .8rem; font-weight: 500; line-height: 1.2;
+  border: 1px solid var(--black); color: var(--black);
+  transition: color var(--t) ease-out, background-color var(--t) ease-out;
+}
+.bar__pill:hover { background: var(--black); color: var(--warm-white); }
+[data-mode="partner"] .bar__pill { color: var(--red); border-color: var(--red); }
+[data-mode="partner"] .bar__pill:hover { background: var(--red); color: var(--warm-white); }
+
+.foot__rs {
+  cursor: pointer; font-size: .8rem; color: var(--grey);
+  text-decoration: underline; text-underline-offset: 3px;
+  transition: color var(--t) ease-out;
+}
+.foot__rs:hover { color: var(--red); }
 
 /* ── Hero ───────────────────────────────────────────────────── */
 .hero {
@@ -229,6 +254,9 @@ body {
 
 /* ── Split layout (sticky aside + scrolling main) ───────────── */
 .split { display: grid; grid-template-columns: 1fr; gap: clamp(40px,5vw,64px); }
+/* Grid items default to min-width:auto, which lets the card row widen its
+   own column instead of scrolling inside it. */
+.split__main { min-width: 0; }
 @media (min-width: 1200px) {
   .split { grid-template-columns: 34% 1fr; gap: clamp(48px,4vw,72px); align-items: start; }
   .split__aside { position: sticky; top: var(--stick); }
@@ -250,8 +278,44 @@ body {
 .seg__btn:hover { transform: translateY(-1px); }
 .seg__btn.is-on { background: var(--black); color: var(--warm-white); border-color: var(--black); }
 
-.pkg-grid { display: grid; grid-template-columns: 1fr; gap: clamp(16px,1.8vw,22px); align-items: stretch; }
-@media (min-width: 768px) { .pkg-grid { grid-template-columns: repeat(2, 1fr); } }
+.pkg-row { display: grid; grid-template-columns: 1fr; gap: clamp(16px,1.8vw,22px); align-items: stretch; }
+
+.row-nav { display: none; }
+.rnav {
+  width: 40px; height: 40px; border-radius: 50%; cursor: pointer;
+  display: grid; place-items: center;
+  background: var(--warm-white); color: var(--black); border: 1px solid var(--hair);
+  transition: color var(--t) ease-out, background-color var(--t) ease-out, transform var(--t) ease-out;
+}
+.rnav:hover:not(:disabled) { background: var(--black); color: var(--warm-white); transform: translateY(-1px); }
+.rnav:disabled { opacity: .3; cursor: default; }
+.rnav .chev--l { transform: translateX(2px) rotate(135deg); }
+.rnav .chev--r { transform: translateX(-2px) rotate(-45deg); }
+
+@media (min-width: 1024px) {
+  .row-nav { display: flex; gap: 8px; justify-content: flex-end; margin-bottom: clamp(16px,2vw,24px); }
+
+  /* One row of five, bleeding to the viewport edge so it reads as continuing.
+     scroll-padding gives every snap point an 80px peek of the previous card,
+     which is also what places the flagship second on load. */
+  .pkg-row {
+    display: flex; grid-template-columns: none; align-items: flex-start; gap: 24px;
+    overflow-x: auto; overscroll-behavior-x: contain;
+    scroll-snap-type: x mandatory; scroll-padding-left: 80px;
+    scrollbar-width: none; cursor: grab;
+    padding: 6px 0 34px;                        /* room for the card shadows */
+    padding-right: clamp(32px, 7vw, 110px);
+    margin-right: calc(-1 * (var(--pad) + max(0px, (100vw - var(--maxw)) / 2)));
+    --mask: linear-gradient(to right, #000 0 calc(100% - 96px), transparent 100%);
+    -webkit-mask-image: var(--mask); mask-image: var(--mask);
+  }
+  .pkg-row.is-scrolled { --mask: linear-gradient(to right, transparent 0, #000 26px calc(100% - 96px), transparent 100%); }
+  .pkg-row.is-drag { cursor: grabbing; user-select: none; }
+  .pkg-row::-webkit-scrollbar { display: none; }
+  /* Cards are a fixed 380px here, so the viewport-scaled price no longer
+     fits once the struck-through standard price sits beside it. */
+  .pkg-row > .pkg { flex: 0 0 380px; scroll-snap-align: start; --fs-price: clamp(2.2rem, 3.1vw, 2.6rem); }
+}
 
 .pkg {
   position: relative; display: flex; flex-direction: column;
@@ -264,7 +328,7 @@ body {
 }
 .pkg--flagship {
   background: var(--black); color: var(--warm-white); border-color: var(--black);
-  --rule: rgba(255,252,242,.12); --dim: rgba(255,252,242,.62); --accent: var(--red);
+  --rule: rgba(255,252,242,.12); --dim: rgba(255,252,242,.62); --accent: var(--red-on-black);
 }
 .pkg:hover { transform: translateY(-6px); box-shadow: var(--shadow-lift); }
 .pkg--flagship:hover { box-shadow: var(--shadow-lift), inset 0 0 70px rgba(255,252,242,.07); }
@@ -273,8 +337,8 @@ body {
   align-self: flex-start; margin-bottom: 18px; padding: 6px 12px; border-radius: 999px;
   font-size: .67rem; font-weight: 600; line-height: 1.2; letter-spacing: .09em; text-transform: uppercase;
 }
-.pkg__pill--flagship { background: rgba(255,252,242,.1); color: var(--warm-white); }
-.pkg__pill--popular  { background: var(--red); color: var(--warm-white); }
+.pkg__pill--cream   { background: var(--cream); color: var(--black); }
+.pkg__pill--popular { background: var(--red); color: var(--warm-white); }
 .pkg__pill--spacer   { visibility: hidden; }
 @media (max-width: 767px) { .pkg__pill--spacer { display: none; } }
 
@@ -284,7 +348,11 @@ body {
 .pkg__price { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
 .pkg__amount { font-size: var(--fs-price); font-weight: 700; line-height: 1.04; letter-spacing: -.04em; }
 .pkg__period { font-size: 1rem; font-weight: 500; color: var(--dim); }
-.pkg__rev { display: block; margin-top: 7px; font-size: .67rem; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: var(--accent); }
+.pkg__was { font-size: calc(var(--fs-price) * .55); font-weight: 600; line-height: 1.04; letter-spacing: -.03em; color: var(--dim); text-decoration: line-through; }
+.pkg__was, .pkg__rev { display: none; }
+[data-mode="partner"] .pkg__was { display: inline; }
+[data-mode="partner"] .pkg__rev { display: block; }
+.pkg__rev { margin-top: 7px; font-size: .67rem; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: var(--accent); }
 
 .pkg__rule { height: 1px; background: var(--rule); margin-block: clamp(20px,2.2vw,28px); }
 .pkg__rule--tail { margin-top: auto; }
@@ -421,6 +489,41 @@ body {
 .foot { border-top: 1px solid var(--hair); padding-block: 26px; }
 .foot__inner { display: flex; flex-wrap: wrap; gap: 12px 24px; align-items: center; justify-content: space-between; }
 .foot__legal { font-size: .8rem; color: var(--grey); }
+
+/* ── Partner password modal ─────────────────────────────────── */
+.modal { position: fixed; inset: 0; z-index: 300; display: grid; place-items: center; padding: 24px; }
+.modal[hidden] { display: none; }
+.modal__back {
+  position: absolute; inset: 0; background: rgba(255,252,242,.7);
+  -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
+}
+.modal__card {
+  position: relative; width: 100%; max-width: 420px;
+  background: var(--surface); border: 1px solid var(--hair2); border-radius: var(--radius);
+  padding: clamp(28px,3vw,40px); box-shadow: 0 24px 70px rgba(2,4,2,.18);
+}
+.modal__card .h3 { margin-top: 12px; max-width: none; }
+.modal__x { position: absolute; top: 10px; right: 14px; font-size: 1.6rem; line-height: 1; color: var(--grey); cursor: pointer; transition: color var(--t) ease-out; }
+.modal__x:hover { color: var(--black); }
+.pw__in {
+  width: 100%; margin-top: 22px; padding: 14px 16px; border-radius: 12px;
+  font-family: var(--font); font-size: 1.15rem; font-weight: 500; letter-spacing: -.02em;
+  color: var(--black); background: var(--warm-white); border: 1px solid var(--hair);
+}
+.pw__err { min-height: 1.25em; margin-top: 8px; font-size: .85rem; line-height: 1.35; color: var(--red); }
+.btn {
+  width: 100%; margin-top: 10px; padding: 14px 20px; border-radius: 12px; cursor: pointer;
+  background: var(--black); color: var(--warm-white);
+  font-size: .95rem; font-weight: 600; line-height: 1.2;
+  transition: transform var(--t) ease-out, box-shadow var(--t) ease-out;
+}
+.btn:hover { transform: translateY(-2px); box-shadow: var(--shadow-lift); }
+.shake { animation: shake 300ms ease-out; }
+@keyframes shake {
+  0%,100% { transform: translateX(0); }
+  20% { transform: translateX(-6px); } 40% { transform: translateX(6px); }
+  60% { transform: translateX(-4px); } 80% { transform: translateX(4px); }
+}
 
 /* ── Reveal (children stagger 80ms apart) ───────────────────── */
 @media (prefers-reduced-motion: no-preference) {

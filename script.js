@@ -12,48 +12,52 @@ const CLIENTS = ['Client One','Client Two','Client Three','Client Four','Client 
    e.g. [{ file:'acme.svg', name:'Acme' }] */
 const CLIENT_LOGOS = [];
 
-/* format drives the filter pills: 'short' | 'long' | 'both' */
+/* Deliverable lines, written once and reused across the packages below.
+   Edit the wording here and every package that uses it follows. */
+const SHORT_FORM = n => `${n} high-retention short-form edits per month — Reels, TikTok and Shorts, fully edited start to finish and delivered platform-ready`;
+const LONG_FORM  = '4 fully produced long-form YouTube videos (up to 10 minutes each) — structured for watch time, not just trimmed';
+const THUMBNAILS = '4 custom click-optimised thumbnails, designed to match each video';
+const FINISHING     = 'Every edit includes dynamic captions, colour grade, audio clean-up and tight pacing';
+const FINISHING_LONG = 'Every edit includes captions, colour grade, audio clean-up and tight pacing';
+
+/* The five packages, left to right.
+   standard — the price everyone sees.
+   partner  — the price shown only in the unlocked Revenue Share view.
+   format   — 'short' | 'long' | 'both', drives the filter pills.
+   flagship — true renders the black card. Set it on exactly one package. */
 const PACKAGES = [
   {
-    name: 'Full Content Engine', format: 'both', flagship: true,
-    pill: { text: 'Everything', style: 'flagship' },
-    tagline: 'Post every day. Own short-form and YouTube.',
-    price: '$2,000', period: '/mo',
-    features: [
-      '30 high-retention short-form edits per month — Reels, TikTok and Shorts, fully edited start to finish and delivered platform-ready',
-      '4 fully produced long-form YouTube videos (up to 10 minutes each) — structured for watch time, not just trimmed',
-      '4 custom click-optimised thumbnails, designed to match each video',
-      'Every edit includes dynamic captions, colour grade, audio clean-up and tight pacing'
-    ]
+    name: 'Content Engine Max', format: 'both', flagship: false,
+    pill: { text: 'Maximum output', style: 'cream' },
+    tagline: 'Two posts a day. Every platform, every day.',
+    standard: '$3,600', partner: '$3,000', period: '/mo',
+    features: [SHORT_FORM(60), LONG_FORM, THUMBNAILS, FINISHING]
   },
   {
-    name: 'Short-Form Engine', format: 'short', flagship: false,
+    name: 'Full Content Engine', format: 'both', flagship: true,
     pill: { text: 'Most popular', style: 'popular' },
+    tagline: 'Post every day. Own short-form and YouTube.',
+    standard: '$2,400', partner: '$2,000', period: '/mo',
+    features: [SHORT_FORM(30), LONG_FORM, THUMBNAILS, FINISHING]
+  },
+  {
+    name: 'Short-Form Engine', format: 'short', flagship: false, pill: null,
     tagline: 'One post a day, every day, handled.',
-    price: '$1,400', period: '/mo',
-    features: [
-      '30 high-retention short-form edits per month — Reels, TikTok and Shorts, fully edited start to finish and delivered platform-ready',
-      'Every edit includes dynamic captions, colour grade, audio clean-up and tight pacing'
-    ]
+    standard: '$1,700', partner: '$1,400', period: '/mo',
+    features: [SHORT_FORM(30), FINISHING]
   },
   {
     name: 'Long-Form Engine', format: 'long', flagship: false, pill: null,
     tagline: 'A new long-form video on your channel every week.',
-    price: '$900', period: '/mo',
-    features: [
-      '4 fully produced long-form YouTube videos (up to 10 minutes each) — structured for watch time, not just trimmed',
-      '4 custom click-optimised thumbnails, designed to match each video',
-      'Every edit includes captions, colour grade, audio clean-up and tight pacing'
-    ]
+    standard: '$1,100', partner: '$900', period: '/mo',
+    features: [LONG_FORM, THUMBNAILS, FINISHING_LONG]
   },
   {
-    name: 'Short-Form Ignition', format: 'short', flagship: false, pill: null,
+    name: 'Short-Form Ignition', format: 'short', flagship: false,
+    pill: { text: 'Starter', style: 'cream' },
     tagline: 'Post every other day. Build the habit.',
-    price: '$800', period: '/mo',
-    features: [
-      '15 high-retention short-form edits per month — Reels, TikTok and Shorts, fully edited start to finish and delivered platform-ready',
-      'Every edit includes dynamic captions, colour grade, audio clean-up and tight pacing'
-    ]
+    standard: '$1,000', partner: '$800', period: '/mo',
+    features: [SHORT_FORM(15), FINISHING]
   }
 ];
 
@@ -65,12 +69,17 @@ const STATS = [
   { value: null, suffix: '+', label: 'clients served' }
 ];
 
+/* SHA-256 of the partner password. This only hides partner pricing from
+   casual visitors — it is not security. To change it, see the README. */
+const PARTNER_HASH = 'd466882a0b93a8ed957bc4e2547b694b91be57621de42cbaefcdb36347ac90fc';
+
 const HERO_SOURCES = [
   { src: 'assets/video/hero-montage.webm', type: 'video/webm' },
   { src: 'assets/video/hero-montage.mp4',  type: 'video/mp4'  }
 ];
 
 /* ───────────────── END EDIT HERE ───────────────── */
+
 
 
 (() => {
@@ -159,8 +168,8 @@ const HERO_SOURCES = [
         <h3 class="pkg__name" id="pk${i}">${esc(p.name)}</h3>
         <p class="pkg__tagline">${esc(p.tagline)}</p>
         <div class="pkg__price-row">
-          <p class="pkg__price"><span class="pkg__amount">${esc(p.price)}</span><span class="pkg__period">${esc(p.period)}</span></p>
-          <span class="pkg__rev">Revenue share</span>
+          <p class="pkg__price"><span class="pkg__was">${esc(p.standard)}</span><span class="pkg__amount" data-when="standard">${esc(p.standard)}</span><span class="pkg__amount" data-when="partner">${esc(p.partner)}</span><span class="pkg__period">${esc(p.period)}</span></p>
+          <span class="pkg__rev">Revenue share price</span>
         </div>
         <div class="pkg__rule"></div>
         <p class="pkg__label">What you get</p>
@@ -445,6 +454,115 @@ const HERO_SOURCES = [
     groups.forEach(g => ob.observe(g));
   };
 
+  /* ══ PACKAGE ROW — arrows, drag, keys ══ */
+  const initRow = () => {
+    const row = $('#packages-grid');
+    if (!row) return;
+    const wide = matchMedia('(min-width: 1024px)');
+    const step = () => ($('.pkg', row)?.offsetWidth || 380) + 24;
+    const by = d => row.scrollBy({ left: d * step(), behavior: RM.matches ? 'auto' : 'smooth' });
+
+    $$('.rnav').forEach(b => b.addEventListener('click', () => by(+b.dataset.dir)));
+    row.addEventListener('keydown', e => {
+      const d = e.key === 'ArrowRight' ? 1 : e.key === 'ArrowLeft' ? -1 : 0;
+      if (d) { e.preventDefault(); by(d); }
+    });
+    row.addEventListener('scroll', () => {
+      row.classList.toggle('is-scrolled', row.scrollLeft > 8);
+      $$('.rnav').forEach(b => {
+        const fwd = +b.dataset.dir > 0;
+        b.disabled = fwd ? row.scrollLeft >= row.scrollWidth - row.clientWidth - 2 : row.scrollLeft <= 2;
+      });
+    }, { passive: true });
+
+    let down = false, x0 = 0, l0 = 0, moved = 0;
+    row.addEventListener('pointerdown', e => {
+      if (e.pointerType !== 'mouse' || !wide.matches) return;
+      down = true; moved = 0; x0 = e.clientX; l0 = row.scrollLeft;
+      row.style.scrollSnapType = 'none';                 // snap fights a drag
+      row.classList.add('is-drag');
+    });
+    addEventListener('pointermove', e => {
+      if (!down) return;
+      moved = Math.abs(e.clientX - x0);
+      row.scrollLeft = l0 - (e.clientX - x0);
+    });
+    addEventListener('pointerup', () => {
+      if (!down) return;
+      down = false; row.style.scrollSnapType = ''; row.classList.remove('is-drag');
+    });
+    // Swallow the click that ends a drag so it cannot open a panel.
+    row.addEventListener('click', e => { if (moved > 5) { e.preventDefault(); e.stopPropagation(); } }, true);
+
+    // Open on the flagship, with the card before it peeking. scroll-padding
+    // puts the same 80px peek on every snap point, so this is a snap point.
+    const i = PACKAGES.findIndex(p => p.flagship);
+    if (wide.matches && i > 0) row.scrollLeft = i * step() - 80;
+    row.dispatchEvent(new Event('scroll'));
+  };
+
+  /* ══ PARTNER MODE ══ */
+  const BASE_TITLE = document.title;
+  const setMode = m => {
+    document.documentElement.dataset.mode = m;
+    document.title = BASE_TITLE + (m === 'partner' ? ' — Partner pricing' : '');
+    try {
+      if (m === 'partner') sessionStorage.btsPartner = '1'; else delete sessionStorage.btsPartner;
+      history.replaceState({}, '', m === 'partner'
+        ? location.pathname + '?partner'
+        : location.pathname.replace(/partner\/?$/, '') || './');
+    } catch (e) {}                                       // file:// blocks both
+  };
+
+  const initPartner = () => {
+    const modal = $('#pw-modal'), input = $('#pw-input'), err = $('#pw-err');
+    if (!modal) return;
+    let last = null;
+    const open = () => {
+      last = document.activeElement;
+      modal.hidden = false; err.textContent = ''; input.value = '';
+      input.focus();
+    };
+    const close = () => { modal.hidden = true; last?.focus(); };
+
+    $$('#rs-link, #rs-link-foot').forEach(b => b.addEventListener('click', () =>
+      document.documentElement.dataset.mode === 'partner' ? setMode('standard') : open()));
+
+    modal.addEventListener('click', e => { if (e.target.closest('[data-close]')) close(); });
+    modal.addEventListener('keydown', e => {
+      if (e.key === 'Escape') return close();
+      if (e.key !== 'Tab') return;
+      const f = $$('input, button', modal), a = f[0], z = f[f.length - 1];
+      if (e.shiftKey ? document.activeElement === a : document.activeElement === z) {
+        e.preventDefault(); (e.shiftKey ? z : a).focus();
+      }
+    });
+
+    $('#pw-form').addEventListener('submit', async e => {
+      e.preventDefault();
+      const v = input.value.trim().toLowerCase().replace(/\s+/g, '');
+      let hex;
+      try {
+        const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(v));
+        hex = [...new Uint8Array(buf)].map(b => b.toString(16).padStart(2, '0')).join('');
+      } catch (_) {
+        err.textContent = 'Needs a secure page — open over https or localhost.';
+        return;
+      }
+      if (hex === PARTNER_HASH) {
+        close(); setMode('partner');
+        $('#packages').scrollIntoView({ behavior: RM.matches ? 'auto' : 'smooth' });
+      } else {
+        err.textContent = "That's not it — check with Ned.";
+        input.value = ''; input.focus();
+        input.classList.remove('shake'); void input.offsetWidth; input.classList.add('shake');
+      }
+    });
+
+    if (document.documentElement.dataset.mode === 'partner') setMode('partner');
+    else if (/partner\/?$/.test(location.pathname) || /partner/.test(location.search)) open();
+  };
+
   /* ══ IN-PAGE LINKS ══ */
   const initScroll = () => document.addEventListener('click', e => {
     const a = e.target.closest?.('a[href^="#"]');
@@ -467,6 +585,8 @@ const HERO_SOURCES = [
   initQuality();
   initGuarantee();
   initTabs();
+  initRow();
+  initPartner();
   accordion($$('.acc__item').map(it => ({ btn: $('.acc__btn', it), panel: $('.acc__panel', it) })));
   initReveal();
   initScroll();

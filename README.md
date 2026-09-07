@@ -44,22 +44,28 @@ block at the top of `script.js`.
 ```js
 {
   name: 'Full Content Engine',
-  format: 'both',                                   // drives the filter pills
-  flagship: true,                                   // black card instead of white
-  pill: { text: 'Everything', style: 'flagship' },  // or null
+  format: 'both',            // filter pills: 'short' | 'long' | 'both'
+  flagship: true,            // the black card — set this on exactly one
+  pill: { text: 'Most popular', style: 'popular' },   // or null
   tagline: 'Post every day. Own short-form and YouTube.',
-  price: '$2,000',
+  standard: '$2,400',        // the price everyone sees
+  partner:  '$2,000',        // shown only in the unlocked Revenue Share view
   period: '/mo',
-  features: [ 'line one', 'line two' ]
+  features: [ SHORT_FORM(30), LONG_FORM, THUMBNAILS, FINISHING ]
 }
 ```
 
-- `format` is `'short'`, `'long'` or `'both'` and decides which filter pills
-  keep the card at full opacity. Get this wrong and the filters lie.
-- `flagship: true` makes the card black. Only set it on one card.
-- `pill.style` is `'flagship'` (warm-white on translucent) or `'popular'`
-  (warm-white on red). `pill: null` for none.
-- The grid is 2×2 from 768px up and one column below.
+- `format` decides which filter pills keep the card at full opacity. Get this
+  wrong and the filters lie.
+- `pill.style` is `'popular'` (warm-white on red) or `'cream'` (black on
+  cream). `pill: null` for none.
+- `features` uses the shared deliverable lines defined just above the array
+  (`SHORT_FORM(n)`, `LONG_FORM`, `THUMBNAILS`, `FINISHING`,
+  `FINISHING_LONG`). Edit the wording once there and every package that uses
+  it follows. Write a literal string instead if one package needs its own.
+- Above 1024px the five cards are a horizontal snap row that bleeds off the
+  right edge; below that they stack. The row opens on the flagship with the
+  card before it peeking.
 
 **The "In numbers" stats** — the `STATS` array.
 
@@ -71,7 +77,7 @@ block at the top of `script.js`.
 Put a real number in and it counts from 0 over 900ms when it scrolls into
 view. **All three are currently `null` — replace them.**
 
-**Client names** — the `CLIENTS` array (see §4).
+**Client names** — the `CLIENTS` array (see §5).
 
 **Everything else** — the five quality-screen points, the revision and
 guarantee copy, the four comparison tabs and all six FAQ answers live
@@ -79,7 +85,77 @@ directly in `index.html`. Search for the text and edit in place. The
 Included panel inside each card is the `<template id="tpl-included">` at
 the bottom of `index.html` — edit it once and all four cards follow.
 
-## 3. Replacing the hero video
+## 3. The partner password
+
+The **Revenue Share** link in the header (and in the footer) opens a password
+box. The right password switches the page into partner mode: every price
+gains the standard price struck through beside the partner price, a small
+`REVENUE SHARE PRICE` label appears on each card, and three bits of copy
+change. Nothing else moves.
+
+The password is currently **`builttoscalepartnership2026`**. Input is
+trimmed, lowercased and stripped of spaces before checking, so
+`Built To Scale Partnership 2026` works too.
+
+### This is not security
+
+The check happens **in the browser**. `script.js` holds a SHA-256 hash of
+the password, not the password itself, so the phrase is not sitting in plain
+sight — but anyone who can open developer tools can read the code, skip the
+check, and set partner mode themselves. Treat it as a lock on a cupboard,
+not a safe: it stops a casual visitor or a forwarded link from showing
+partner rates. If partner pricing must be genuinely protected, it needs a
+server that does not send those prices to the browser at all.
+
+Partner mode lasts for the browser session (`sessionStorage`), survives a
+refresh, and ends when the tab closes or the visitor clicks
+**Partner pricing ✓** in the header.
+
+### Changing the password
+
+Generate the SHA-256 of the new phrase — lowercase, no spaces — and replace
+`PARTNER_HASH` in `script.js`:
+
+```bash
+# macOS
+echo -n "yournewphrase2027" | shasum -a 256
+
+# Linux
+echo -n "yournewphrase2027" | sha256sum
+```
+
+Use `echo -n`, not `echo` — a trailing newline produces a different hash and
+the password will never match.
+
+### Deep links
+
+Unlocking sets `?partner` on the URL, which works on any static host.
+`/partner` also works on Vercel, via the rewrite in `vercel.json`. Either
+one, opened in a fresh tab, shows the page in standard mode with the
+password box open — neither bypasses anything.
+
+On **GitHub Pages** there are no rewrites and `vercel.json` is ignored
+entirely (so are its caching headers — Pages sets its own). Use
+`?partner` there; `/partner` will 404.
+
+### What a public repo exposes
+
+Making the repository public is fine — there are no API keys or tokens in
+it. Two things are worth knowing:
+
+- The **partner prices are in `script.js` in plain text**, as `partner:
+  '$2,000'` and so on. Anyone who opens the repo, or the deployed
+  `script.js`, reads them without needing the password. The same is true of
+  any static site: the browser has to be sent the numbers to display them.
+- The **hash is only as strong as the phrase**. A short, guessable phrase
+  falls to a dictionary attack in seconds, so `PARTNER_HASH` does not
+  meaningfully protect the password either.
+
+The gate keeps partner rates out of the way of a casual visitor or a
+forwarded link. It is not a control, and nothing behind it should be
+anything you would mind a stranger seeing.
+
+## 4. Replacing the hero video
 
 Put your raw clips in a folder and list them in a `clips.txt`:
 
@@ -120,7 +196,7 @@ playing. Video is skipped entirely on screens under 768px, under
 `prefers-reduced-motion`, on `saveData` connections, and if it has not
 started within 3 seconds.
 
-## 4. Adding client logos
+## 5. Adding client logos
 
 **Text names (default):** edit `CLIENTS` in `script.js`.
 
@@ -141,7 +217,7 @@ const CLIENT_LOGOS = [
 Logos render at a uniform 28px height, greyscale, 70% opacity. Supply them
 dark-on-transparent — they sit on warm-white. Six to ten reads best.
 
-## 5. Deploying
+## 6. Deploying
 
 **Vercel — two commands:**
 
@@ -161,7 +237,7 @@ the project folder onto the page.
 python3 -m http.server 8000     # then open http://localhost:8000
 ```
 
-## 6. Attaching a custom domain
+## 7. Attaching a custom domain
 
 **Vercel:** Project → Settings → Domains → add e.g.
 `editing.yourdomain.com`, then at your registrar add the record Vercel

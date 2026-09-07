@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" data-mode="standard">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -7,6 +7,7 @@
 <meta name="description" content="You film. We turn it into a month of publish-ready content — edited, quality-checked and delivered, without you ever opening a timeline.">
 <meta name="robots" content="noindex, nofollow">
 <meta name="theme-color" content="#FFFCF2">
+<script>try{document.documentElement.dataset.mode=sessionStorage.btsPartner==='1'?'partner':'standard'}catch(e){}</script>
 
 <meta property="og:type" content="website">
 <meta property="og:title" content="DFY Video Editing, Quality Control &amp; Management — Built To Scale">
@@ -36,6 +37,7 @@
       <a href="#quality"   data-nav="quality"   class="bar__wide">Quality</a>
       <a href="#guarantee" data-nav="guarantee" class="bar__wide">Guarantee</a>
       <a href="#process"   data-nav="process"   class="bar__wide">Process</a>
+      <button type="button" class="bar__pill" id="rs-link" aria-haspopup="dialog"><span data-when="standard">Revenue Share</span><span data-when="partner">Partner pricing &#10003;</span></button>
     </nav>
   </div>
 </header>
@@ -53,7 +55,7 @@
     <span class="wordmark hero__wordmark" data-wordmark>Built To Scale</span>
 
     <div class="wrap hero__inner">
-      <p class="eyebrow hero__eyebrow" data-hero="1">Revenue Share Partnership</p>
+      <p class="eyebrow hero__eyebrow" data-hero="1"><span data-when="standard">Editing packages</span><span data-when="partner">Revenue share partnership</span></p>
       <h1 class="hero__title" id="hero-title" data-split>DFY Video Editing, Quality Control &amp; Management</h1>
       <p class="hero__sub" data-hero="2">You film. We turn it into a month of publish-ready content — edited, quality-checked and delivered, without you ever opening a timeline.</p>
     </div>
@@ -74,7 +76,7 @@
       <div class="split__aside" data-stagger>
         <p class="eyebrow eyebrow--red">Packages</p>
         <h2 class="h2" id="packages-title">Pick the engine that matches how often you want to post.</h2>
-        <p class="lede">All packages are monthly. Every video goes through the same five-point quality screen and carries the same 14-day guarantee.</p>
+        <p class="lede"><span data-when="standard">All packages are monthly. Every video goes through the same five-point quality screen and carries the same 14-day guarantee.</span><span data-when="partner">Partner pricing. Every video goes through the same five-point quality screen and carries the same 14-day guarantee.</span></p>
 
         <div class="seg" role="group" aria-label="Filter packages by format" id="filters">
           <button type="button" class="seg__btn is-on" data-filter="all"   aria-pressed="true">All</button>
@@ -85,7 +87,13 @@
         <p class="sr-live" id="filter-status" role="status" aria-live="polite"></p>
       </div>
 
-      <div class="split__main"><div class="pkg-grid" id="packages-grid"></div></div>
+      <div class="split__main">
+        <div class="row-nav">
+          <button type="button" class="rnav" data-dir="-1" aria-label="Scroll packages left" aria-controls="packages-grid"><span class="chev chev--l" aria-hidden="true"></span></button>
+          <button type="button" class="rnav" data-dir="1" aria-label="Scroll packages right" aria-controls="packages-grid"><span class="chev chev--r" aria-hidden="true"></span></button>
+        </div>
+        <div class="pkg-row" id="packages-grid" tabindex="0" role="group" aria-label="Packages — scrollable row"></div>
+      </div>
     </div>
   </section>
 
@@ -216,7 +224,7 @@
         </div>
         <div class="acc__item">
           <h3 class="acc__h"><button type="button" class="acc__btn" aria-expanded="false" aria-controls="fa2">What does &ldquo;revenue share&rdquo; mean here?<span class="chev" aria-hidden="true"></span></button></h3>
-          <div class="acc__panel" id="fa2" role="region"><div class="acc__in"><p>The monthly figure is the base. Where we agree a revenue-share partnership, the specifics are set in your agreement — this page shows the packages, not the split.</p></div></div>
+          <div class="acc__panel" id="fa2" role="region"><div class="acc__in"><p data-when="standard">The monthly figure is the base. Where we agree a revenue-share partnership, the specifics are set in your agreement — this page shows the packages, not the split.</p><p data-when="partner">You’re on a revenue-share partnership, so you get the partner rate shown on every package. The specifics of the share are set in your agreement.</p></div></div>
         </div>
         <div class="acc__item">
           <h3 class="acc__h"><button type="button" class="acc__btn" aria-expanded="false" aria-controls="fa3">How do revisions work?<span class="chev" aria-hidden="true"></span></button></h3>
@@ -247,7 +255,7 @@
 <footer class="foot">
   <div class="wrap foot__inner">
     <span class="wordmark wordmark--sm" data-wordmark>Built To Scale</span>
-    <span class="foot__legal">&copy; 2026 Auctus Enterprises. All prices in USD.</span>
+    <span class="foot__legal"><button type="button" class="foot__rs" id="rs-link-foot" aria-haspopup="dialog"><span data-when="standard">Revenue Share partners &rarr;</span><span data-when="partner">Leave partner pricing &rarr;</span></button> &nbsp;&copy; 2026 Auctus Enterprises. All prices in USD.</span>
   </div>
 </footer>
 
@@ -268,6 +276,20 @@
     <p class="inc__p">Every video is edited and returned within 14 days of receiving your footage. If we miss it, that video is edited free and we send you $100.</p>
   </div>
 </template>
+
+<div class="modal" id="pw-modal" hidden>
+  <div class="modal__back" data-close></div>
+  <div class="modal__card" role="dialog" aria-modal="true" aria-labelledby="pw-title">
+    <p class="eyebrow eyebrow--red">Revenue share partners</p>
+    <h2 class="h3" id="pw-title">Enter your partner password</h2>
+    <form id="pw-form" novalidate>
+      <input type="password" id="pw-input" class="pw__in" placeholder="Password" autocomplete="current-password" aria-describedby="pw-err" spellcheck="false">
+      <p class="pw__err" id="pw-err" role="alert"></p>
+      <button type="submit" class="btn">Unlock</button>
+    </form>
+    <button type="button" class="modal__x" data-close aria-label="Close">&times;</button>
+  </div>
+</div>
 
 <script src="script.js" defer></script>
 </body>
