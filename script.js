@@ -65,9 +65,9 @@ const PACKAGES = [
    value back to null renders the literal placeholder "[X]" and skips the
    count-up. */
 const STATS = [
-  { value: 500, suffix: '+', label: 'videos delivered' },
-  { value: 3,   suffix: '',  label: 'day average turnaround' },
-  { value: 50,  suffix: '+', label: 'clients served' }
+  { value: 500, prefix: '', suffix: '+', label: 'videos delivered' },
+  { value: 3,   prefix: '', suffix: '',  label: 'day average turnaround' },
+  { value: 50,  prefix: '', suffix: '+', label: 'clients served' }
 ];
 
 /* SHA-256 of the partner password. This only hides partner pricing from
@@ -157,7 +157,9 @@ const HERO_SOURCES = [
     const t0 = performance.now();
     const step = now => {
       const p = Math.min((now - t0) / dur, 1);
-      el.textContent = prefix + Math.round(to * (1 - (1 - p) ** 3)) + suffix;
+      // Prefix rides along ($0 → $100); the suffix waits for the end, so a
+      // half-counted 243 is never shown as 243+.
+      el.textContent = prefix + Math.round(to * (1 - (1 - p) ** 3)) + (p === 1 ? suffix : '');
       if (p < 1) requestAnimationFrame(step);
     };
     requestAnimationFrame(step);
@@ -233,11 +235,22 @@ const HERO_SOURCES = [
       ? CLIENT_LOGOS.map(l => `<li class="marquee__item"><img class="marquee__logo" src="${ROOT}assets/logos/${esc(l.file)}" alt="${esc(l.name || '')}" width="120" height="28" loading="lazy" decoding="async"></li>`)
       : CLIENTS.map(c => `<li class="marquee__item">${esc(c)}</li>`);
 
-    const group = items.join(''), still = RM.matches;
-    host.innerHTML = `<div class="marquee__track"><ul class="marquee__group">${group}</ul>${
-      still ? '' : `<ul class="marquee__group" aria-hidden="true">${group}</ul>`}</div>`;
+    const still = RM.matches;
+    const build = n => {
+      const g = items.join('').repeat(n);
+      host.innerHTML = `<div class="marquee__track"><ul class="marquee__group">${g}</ul>${
+        still ? '' : `<ul class="marquee__group" aria-hidden="true">${g}</ul>`}</div>`;
+    };
+    build(1);
     host.classList.toggle('is-static', still);
     if (still) return;
+
+    // The loop scrolls one group's width, so a group narrower than the row
+    // leaves a gap at the seam. Repeat the list until it covers — measured
+    // against the screen too, so maximising the window cannot open one up.
+    const one = $('.marquee__group', host).getBoundingClientRect().width;
+    const need = Math.ceil(Math.max(host.clientWidth, screen?.width || 0) / Math.max(one, 1));
+    if (need > 1) build(need);
 
     // Hover slows to 25%. Rescaling the duration alone would jump, so the
     // animation's progress is carried across.
@@ -260,7 +273,7 @@ const HERO_SOURCES = [
     if (!box) return;
     box.innerHTML = STATS.map(s => {
       const v = s.value == null ? '[X]' : String(s.value);
-      return `<div class="stat"><p class="stat__v" data-to="${s.value ?? ''}" data-suffix="${esc(s.suffix)}">${esc(v + s.suffix)}</p><p class="stat__l">${esc(s.label)}</p></div>`;
+      return `<div class="stat"><p class="stat__v" data-to="${s.value ?? ''}" data-prefix="${esc(s.prefix || '')}" data-suffix="${esc(s.suffix)}">${esc((s.prefix || '') + v + s.suffix)}</p><p class="stat__l">${esc(s.label)}</p></div>`;
     }).join('');
     box.setAttribute('data-stagger', '');
     if (!IO) return;
@@ -269,7 +282,7 @@ const HERO_SOURCES = [
       if (!e.isIntersecting) return;
       ob.unobserve(e.target);
       const to = e.target.dataset.to;             // '' while the value is [X]
-      if (to !== '') countTo(e.target, +to, 900, '', e.target.dataset.suffix);
+      if (to !== '') countTo(e.target, +to, 900, e.target.dataset.prefix, e.target.dataset.suffix);
     }), { threshold: 0.4 });
     $$('.stat__v', box).forEach(el => ob.observe(el));
   };

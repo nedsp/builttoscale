@@ -77,12 +77,16 @@ block at the top of `script.js`.
 **The "In numbers" stats** — the `STATS` array.
 
 ```js
-{ value: null, suffix: '+', label: 'videos delivered' }
+{ value: 500, prefix: '', suffix: '+', label: 'videos delivered' }
 ```
 
-`value: null` renders the literal placeholder `[X]` and skips the count-up.
-Put a real number in and it counts from 0 over 900ms when it scrolls into
-view. **All three are currently `null` — replace them.**
+Keep the number, the prefix and the suffix in separate fields — the counter
+animates `value` and never parses a string. It counts from 0 over 900ms when
+the stat scrolls into view; the prefix shows throughout, the suffix appears
+once the count lands, so a half-counted 243 is never shown as `243+`.
+
+Setting `value: null` renders the literal placeholder `[X]` and skips the
+count-up, which is how these shipped before the real figures arrived.
 
 **Client names** — the `CLIENTS` array (see §5).
 
