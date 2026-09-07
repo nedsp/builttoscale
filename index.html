@@ -6,10 +6,8 @@
 <title>DFY Video Editing, Quality Control &amp; Management — Built To Scale</title>
 <meta name="description" content="You film. We turn it into a month of publish-ready content — edited, quality-checked and delivered, without you ever opening a timeline.">
 <meta name="robots" content="noindex, nofollow">
-<meta name="theme-color" content="#111111">
+<meta name="theme-color" content="#FFFCF2">
 
-<!-- Open Graph / Twitter. For reliable previews in Slack/iMessage, change these
-     two paths to absolute URLs on your domain once deployed (see README). -->
 <meta property="og:type" content="website">
 <meta property="og:title" content="DFY Video Editing, Quality Control &amp; Management — Built To Scale">
 <meta property="og:description" content="You film. We turn it into a month of publish-ready content — edited, quality-checked and delivered, without you ever opening a timeline.">
@@ -21,136 +19,224 @@
 <meta name="twitter:description" content="You film. We turn it into a month of publish-ready content — edited, quality-checked and delivered, without you ever opening a timeline.">
 <meta name="twitter:image" content="assets/og-image.jpg">
 
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%23111111'/%3E%3Ctext x='16' y='25' font-family='Anton,Impact,Haettenschweiler,Arial Narrow,sans-serif' font-size='27' font-weight='400' fill='%23F5F5F5' text-anchor='middle'%3EB%3C/text%3E%3C/svg%3E">
-
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%23020402'/%3E%3Ctext x='16' y='24' font-family='Helvetica,Arial,sans-serif' font-size='22' font-weight='700' fill='%23FFFCF2' text-anchor='middle'%3EB%3C/text%3E%3C/svg%3E">
 <link rel="preload" as="image" href="assets/video/hero-poster.jpg" fetchpriority="high">
-<!-- Preloading the two latin subsets lets the real faces land with the first
-     paint, which is what keeps the hero from reflowing. These versioned URLs
-     come from the stylesheet below — if Google bumps a version they simply
-     stop matching and the page falls back to a normal (slightly later) load.
-     See README to refresh them. -->
-<link rel="preload" as="font" type="font/woff2" crossorigin href="https://fonts.gstatic.com/s/anton/v27/1Ptgg87LROyAm3Kz-C8.woff2">
-<link rel="preload" as="font" type="font/woff2" crossorigin href="https://fonts.gstatic.com/s/intertight/v9/NGSwv5HMAFg6IuGlBNMjxLsH8ag.woff2">
-<link href="https://fonts.googleapis.com/css2?family=Anton&family=Inter+Tight:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="styles.css">
 </head>
 <body>
 
 <a class="skip-link" href="#packages">Skip to packages</a>
 
-<header class="site-header">
-  <div class="wordmark">Built To Scale</div>
+<!-- ═══ STICKY HEADER ═══ -->
+<header class="bar" id="bar">
+  <div class="bar__inner">
+    <span class="wordmark" data-wordmark>Built To Scale</span>
+    <nav class="bar__nav" aria-label="Sections">
+      <a href="#packages"  data-nav="packages">Packages</a>
+      <a href="#quality"   data-nav="quality"   class="bar__wide">Quality</a>
+      <a href="#guarantee" data-nav="guarantee" class="bar__wide">Guarantee</a>
+      <a href="#process"   data-nav="process"   class="bar__wide">Process</a>
+    </nav>
+  </div>
 </header>
 
 <main>
 
   <!-- ═══ HERO ═══ -->
   <section class="hero" id="hero" aria-labelledby="hero-title">
-    <div class="hero__media">
+    <div class="hero__media" id="hero-media">
       <video class="hero__video" id="hero-video" aria-hidden="true" tabindex="-1"
-             muted loop playsinline preload="none"
-             poster="assets/video/hero-poster.jpg"></video>
+             muted loop playsinline preload="none" poster="assets/video/hero-poster.jpg"></video>
     </div>
     <div class="hero__scrim" aria-hidden="true"></div>
 
-    <div class="container hero__inner">
-      <p class="eyebrow eyebrow--red">Revenue Share Partnership</p>
-      <h1 class="hero__title" id="hero-title">DFY Video Editing, Quality&nbsp;Control &amp; Management</h1>
-      <p class="hero__sub">You film. We turn it into a month of publish-ready content — edited, quality-checked and delivered, without you ever opening a timeline.</p>
+    <span class="wordmark hero__wordmark" data-wordmark>Built To Scale</span>
+
+    <div class="wrap hero__inner">
+      <p class="eyebrow hero__eyebrow" data-hero="1">Revenue Share Partnership</p>
+      <h1 class="hero__title" id="hero-title" data-split>DFY Video Editing, Quality Control &amp; Management</h1>
+      <p class="hero__sub" data-hero="2">You film. We turn it into a month of publish-ready content — edited, quality-checked and delivered, without you ever opening a timeline.</p>
     </div>
 
-    <div class="scroll-cue" aria-hidden="true">
-      <span class="scroll-cue__label">Scroll</span>
-      <span class="scroll-cue__line"></span>
-    </div>
+    <div class="cue" id="cue" aria-hidden="true"><span class="cue__label">Scroll</span><span class="cue__line"></span></div>
+    <span class="hero__sentinel" id="hero-sentinel" aria-hidden="true"></span>
   </section>
 
   <!-- ═══ CLIENT STRIP ═══ -->
   <section class="clients" aria-labelledby="clients-title">
-    <div class="container">
-      <h2 class="eyebrow eyebrow--muted" id="clients-title">Editing for</h2>
-    </div>
-    <div class="marquee" id="clients-marquee"></div>
+    <div class="wrap"><h2 class="eyebrow eyebrow--grey" id="clients-title">Editing for</h2></div>
+    <div class="marquee" id="marquee"></div>
   </section>
 
   <!-- ═══ PACKAGES ═══ -->
   <section class="pricing" id="packages" aria-labelledby="packages-title">
-    <div class="container">
-      <div class="section-head reveal">
+    <div class="wrap split">
+      <div class="split__aside" data-stagger>
         <p class="eyebrow eyebrow--red">Packages</p>
-        <h2 class="section-title" id="packages-title">Pick the engine that matches how often you want to post.</h2>
-        <p class="section-sub">All packages are monthly. Every video goes through the same five-point quality screen and carries the same 14-day guarantee.</p>
+        <h2 class="h2" id="packages-title">Pick the engine that matches how often you want to post.</h2>
+        <p class="lede">All packages are monthly. Every video goes through the same five-point quality screen and carries the same 14-day guarantee.</p>
+
+        <div class="seg" role="group" aria-label="Filter packages by format" id="filters">
+          <button type="button" class="seg__btn is-on" data-filter="all"   aria-pressed="true">All</button>
+          <button type="button" class="seg__btn" data-filter="short" aria-pressed="false">Short-form</button>
+          <button type="button" class="seg__btn" data-filter="long"  aria-pressed="false">Long-form</button>
+          <button type="button" class="seg__btn" data-filter="both"  aria-pressed="false">Both</button>
+        </div>
+        <p class="sr-live" id="filter-status" role="status" aria-live="polite"></p>
       </div>
-      <div class="pkg-grid" id="packages-grid"></div>
+
+      <div class="split__main"><div class="pkg-grid" id="packages-grid"></div></div>
     </div>
   </section>
 
   <!-- ═══ QUALITY SCREEN ═══ -->
   <section class="quality" id="quality" aria-labelledby="quality-title">
-    <div class="container">
-      <div class="section-head reveal">
+    <div class="wrap split">
+      <div class="split__aside" data-stagger>
         <p class="eyebrow eyebrow--red">Five-point quality screen</p>
-        <h2 class="section-title" id="quality-title">Nothing ships until it passes.</h2>
+        <h2 class="h2" id="quality-title">Nothing ships until it passes.</h2>
+        <p class="lede">Anything caught by our own screen is corrected before you see it, at no cost.</p>
       </div>
 
-      <ol class="qlist">
-        <li class="qrow reveal"><span class="qrow__num" aria-hidden="true">01</span><p class="qrow__text">Captions proofread and spelt correctly</p></li>
-        <li class="qrow reveal"><span class="qrow__num" aria-hidden="true">02</span><p class="qrow__text">Colour grade applied and consistent across the batch</p></li>
-        <li class="qrow reveal"><span class="qrow__num" aria-hidden="true">03</span><p class="qrow__text">Audio optimised to the highest quality the source footage allows</p></li>
-        <li class="qrow reveal"><span class="qrow__num" aria-hidden="true">04</span><p class="qrow__text">No watermarks, outros or editor credits</p></li>
-        <li class="qrow reveal"><span class="qrow__num" aria-hidden="true">05</span><p class="qrow__text">Clean cuts, correctly placed</p></li>
-      </ol>
-
-      <p class="quality__note reveal">Anything caught by our own screen is corrected before you see it, at no cost.</p>
+      <div class="split__main">
+        <ol class="qlist" id="qlist">
+          <li class="qrow"><span class="qrow__num" aria-hidden="true">01</span><p class="qrow__text">Captions proofread and spelt correctly</p></li>
+          <li class="qrow"><span class="qrow__num" aria-hidden="true">02</span><p class="qrow__text">Colour grade applied and consistent across the batch</p></li>
+          <li class="qrow"><span class="qrow__num" aria-hidden="true">03</span><p class="qrow__text">Audio optimised to the highest quality the source footage allows</p></li>
+          <li class="qrow"><span class="qrow__num" aria-hidden="true">04</span><p class="qrow__text">No watermarks, outros or editor credits</p></li>
+          <li class="qrow"><span class="qrow__num" aria-hidden="true">05</span><p class="qrow__text">Clean cuts, correctly placed</p></li>
+        </ol>
+      </div>
     </div>
   </section>
 
   <!-- ═══ REVISIONS + GUARANTEE ═══ -->
   <section class="promise" id="guarantee" aria-labelledby="promise-title">
-    <div class="container">
+    <div class="wrap">
       <h2 class="sr-only" id="promise-title">Revisions and guarantee</h2>
-      <div class="promise__grid">
-
-        <div class="card card--light reveal">
-          <p class="eyebrow eyebrow--muted-light">Revision policy</p>
-          <h3 class="promise__title">One round of changes, made once, by you.</h3>
-          <p class="promise__body">After delivery you get one round of preference-based changes per video, requested by the owner the content is produced for. Anything caught by our own quality screen is corrected before delivery at no cost — that never counts as your round.</p>
+      <div class="promise__grid" data-stagger>
+        <div class="card">
+          <p class="eyebrow eyebrow--grey">Revision policy</p>
+          <h3 class="h3">One round of changes, made once, by you.</h3>
+          <p class="body">After delivery you get one round of preference-based changes per video, requested by the owner the content is produced for. Anything caught by our own quality screen is corrected before delivery at no cost — that never counts as your round.</p>
         </div>
 
-        <div class="card card--red reveal">
+        <div class="card card--red" id="gcard">
           <p class="eyebrow eyebrow--on-red">14-day delivery guarantee</p>
-          <h3 class="promise__title promise__title--display">Late? It&rsquo;s free — and we pay you $100.</h3>
-          <p class="promise__body">Every video is edited and returned within 14 days of receiving your footage. If we miss it, that video is edited free and we send you $100.</p>
+          <h3 class="h3 h3--big">Late? It&rsquo;s free — and we pay you <span data-count="100" data-prefix="$">$100</span>.</h3>
+          <p class="body">Every video is edited and returned within 14 days of receiving your footage. If we miss it, that video is edited free and we send you $100.</p>
         </div>
-
       </div>
     </div>
   </section>
 
   <!-- ═══ PROCESS ═══ -->
   <section class="process" id="process" aria-labelledby="process-title">
-    <div class="container">
-      <div class="section-head reveal">
+    <div class="wrap split">
+      <div class="split__aside" data-stagger>
         <p class="eyebrow eyebrow--red">The process</p>
-        <h2 class="section-title" id="process-title">How it works</h2>
+        <h2 class="h2" id="process-title">How it works</h2>
+        <p class="lede lede--em">Turnaround: 14 days from footage received, guaranteed.</p>
       </div>
 
-      <ol class="step-grid">
-        <li class="step reveal"><span class="step__num" aria-hidden="true">1</span><h3 class="step__title">Drop your footage</h3><p class="step__body">Upload raw footage to your shared folder whenever you film.</p></li>
-        <li class="step reveal"><span class="step__num" aria-hidden="true">2</span><h3 class="step__title">We edit and screen</h3><p class="step__body">Every video is edited start to finish and put through the five-point quality screen.</p></li>
-        <li class="step reveal"><span class="step__num" aria-hidden="true">3</span><h3 class="step__title">Review and refine</h3><p class="step__body">Watch the delivered cut and request your one round of preference-based changes.</p></li>
-        <li class="step reveal"><span class="step__num" aria-hidden="true">4</span><h3 class="step__title">Post</h3><p class="step__body">Every file arrives sized and formatted for the platform, ready to publish.</p></li>
-      </ol>
+      <div class="split__main">
+        <ol class="stack">
+          <li class="stack__item" style="--i:0"><article class="step"><span class="step__num" aria-hidden="true">1</span><h3 class="step__title">Drop your footage</h3><p class="step__body">Upload raw footage to your shared folder whenever you film.</p></article></li>
+          <li class="stack__item" style="--i:1"><article class="step"><span class="step__num" aria-hidden="true">2</span><h3 class="step__title">We edit and screen</h3><p class="step__body">Every video is edited start to finish and put through the five-point quality screen.</p></article></li>
+          <li class="stack__item" style="--i:2"><article class="step"><span class="step__num" aria-hidden="true">3</span><h3 class="step__title">Review and refine</h3><p class="step__body">Watch the delivered cut and request your one round of preference-based changes.</p></article></li>
+          <li class="stack__item" style="--i:3"><article class="step"><span class="step__num" aria-hidden="true">4</span><h3 class="step__title">Post</h3><p class="step__body">Every file arrives sized and formatted for the platform, ready to publish.</p></article></li>
+        </ol>
+      </div>
+    </div>
+  </section>
 
-      <p class="process__note reveal">Turnaround: 14 days from footage received, guaranteed.</p>
+  <!-- ═══ WHY THIS INSTEAD ═══ -->
+  <section class="compare" id="compare" aria-labelledby="compare-title">
+    <div class="wrap">
+      <div class="head head--mid" data-stagger>
+        <p class="eyebrow eyebrow--red">Why this instead</p>
+        <h2 class="h2 h2--mid" id="compare-title">Hiring, freelancers or doing it yourself? None of them.</h2>
+      </div>
+
+      <div class="seg seg--tabs" role="tablist" aria-label="Alternatives" id="cmp-tabs">
+        <button type="button" class="seg__btn is-on" role="tab" id="cmp-t0" aria-selected="true"  aria-controls="cmp-p0" tabindex="0">In-house editor</button>
+        <button type="button" class="seg__btn"       role="tab" id="cmp-t1" aria-selected="false" aria-controls="cmp-p1" tabindex="-1">Freelancers</button>
+        <button type="button" class="seg__btn"       role="tab" id="cmp-t2" aria-selected="false" aria-controls="cmp-p2" tabindex="-1">AI tools</button>
+        <button type="button" class="seg__btn"       role="tab" id="cmp-t3" aria-selected="false" aria-controls="cmp-p3" tabindex="-1">Doing it yourself</button>
+      </div>
+
+      <div class="cmp" id="cmp-panels">
+        <div class="cmp__panel is-on" role="tabpanel" id="cmp-p0" aria-labelledby="cmp-t0">
+          <div class="cmp__side"><p class="eyebrow eyebrow--grey">In-house editor</p><p class="cmp__text">A salary, management overhead and one person&rsquo;s taste — plus you&rsquo;re the bottleneck for every brief.</p></div>
+          <div class="cmp__side cmp__side--ours"><p class="eyebrow eyebrow--red">Built To Scale</p><p class="cmp__text">A managed team with quality control built in, for a flat monthly figure. No hiring, no managing.</p></div>
+        </div>
+        <div class="cmp__panel" role="tabpanel" id="cmp-p1" aria-labelledby="cmp-t1">
+          <div class="cmp__side"><p class="eyebrow eyebrow--grey">Freelancers</p><p class="cmp__text">Inconsistent availability, inconsistent style, and you&rsquo;re the one chasing deadlines.</p></div>
+          <div class="cmp__side cmp__side--ours"><p class="eyebrow eyebrow--red">Built To Scale</p><p class="cmp__text">Fixed capacity every month, one consistent look, and a 14-day guarantee that pays you if we&rsquo;re late.</p></div>
+        </div>
+        <div class="cmp__panel" role="tabpanel" id="cmp-p2" aria-labelledby="cmp-t2">
+          <div class="cmp__side"><p class="eyebrow eyebrow--grey">AI tools</p><p class="cmp__text">Fast, but no judgement. Captions misspelt, cuts in the wrong place, and nobody watching the output.</p></div>
+          <div class="cmp__side cmp__side--ours"><p class="eyebrow eyebrow--red">Built To Scale</p><p class="cmp__text">Every video is screened by a person against a five-point checklist before it reaches you.</p></div>
+        </div>
+        <div class="cmp__panel" role="tabpanel" id="cmp-p3" aria-labelledby="cmp-t3">
+          <div class="cmp__side"><p class="eyebrow eyebrow--grey">Doing it yourself</p><p class="cmp__text">Hours in a timeline every week that should be spent filming, selling or running the business.</p></div>
+          <div class="cmp__side cmp__side--ours"><p class="eyebrow eyebrow--red">Built To Scale</p><p class="cmp__text">You film. Everything after that is handled.</p></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ IN NUMBERS ═══ -->
+  <section class="numbers" id="numbers" aria-labelledby="numbers-title">
+    <div class="wrap">
+      <div class="head head--mid" data-stagger>
+        <p class="eyebrow eyebrow--red">In numbers</p>
+        <h2 class="sr-only" id="numbers-title">In numbers</h2>
+      </div>
+      <div class="stats" id="stats"></div>
+    </div>
+  </section>
+
+  <!-- ═══ FAQ ═══ -->
+  <section class="faq" id="faq" aria-labelledby="faq-title">
+    <div class="wrap">
+      <div class="head head--mid" data-stagger>
+        <p class="eyebrow eyebrow--red">Questions</p>
+        <h2 class="h2 h2--mid" id="faq-title">Everything else</h2>
+      </div>
+
+      <div class="acc" id="acc">
+        <div class="acc__item">
+          <h3 class="acc__h"><button type="button" class="acc__btn" aria-expanded="false" aria-controls="fa0">What counts as a &ldquo;short-form edit&rdquo;?<span class="chev" aria-hidden="true"></span></button></h3>
+          <div class="acc__panel" id="fa0" role="region"><div class="acc__in"><p>One talking-head clip of any length up to ~90 seconds, edited start to finish: cuts, captions, colour, audio, pacing. Sized for Reels, TikTok and Shorts.</p></div></div>
+        </div>
+        <div class="acc__item">
+          <h3 class="acc__h"><button type="button" class="acc__btn" aria-expanded="false" aria-controls="fa1">What do I need to send you?<span class="chev" aria-hidden="true"></span></button></h3>
+          <div class="acc__panel" id="fa1" role="region"><div class="acc__in"><p>Raw footage in your shared folder. Phone or camera, any format. No pre-cutting needed.</p></div></div>
+        </div>
+        <div class="acc__item">
+          <h3 class="acc__h"><button type="button" class="acc__btn" aria-expanded="false" aria-controls="fa2">What does &ldquo;revenue share&rdquo; mean here?<span class="chev" aria-hidden="true"></span></button></h3>
+          <div class="acc__panel" id="fa2" role="region"><div class="acc__in"><p>The monthly figure is the base. Where we agree a revenue-share partnership, the specifics are set in your agreement — this page shows the packages, not the split.</p></div></div>
+        </div>
+        <div class="acc__item">
+          <h3 class="acc__h"><button type="button" class="acc__btn" aria-expanded="false" aria-controls="fa3">How do revisions work?<span class="chev" aria-hidden="true"></span></button></h3>
+          <div class="acc__panel" id="fa3" role="region"><div class="acc__in"><p>One round of preference-based changes per video, requested by you. Anything our own quality screen catches is fixed before you ever see it and never counts as your round.</p></div></div>
+        </div>
+        <div class="acc__item">
+          <h3 class="acc__h"><button type="button" class="acc__btn" aria-expanded="false" aria-controls="fa4">What happens if you&rsquo;re late?<span class="chev" aria-hidden="true"></span></button></h3>
+          <div class="acc__panel" id="fa4" role="region"><div class="acc__in"><p>If a video isn&rsquo;t back within 14 days of receiving the footage, it&rsquo;s edited free and we send you $100.</p></div></div>
+        </div>
+        <div class="acc__item">
+          <h3 class="acc__h"><button type="button" class="acc__btn" aria-expanded="false" aria-controls="fa5">Can I change package?<span class="chev" aria-hidden="true"></span></button></h3>
+          <div class="acc__panel" id="fa5" role="region"><div class="acc__in"><p>Yes, month to month. Tell us before your next batch of footage.</p></div></div>
+        </div>
+      </div>
     </div>
   </section>
 
   <!-- ═══ CLOSING ═══ -->
   <section class="closing" aria-labelledby="closing-title">
-    <div class="container closing__inner reveal">
+    <div class="wrap closing__inner" data-stagger>
       <h2 class="closing__title" id="closing-title">Ready to post every day?</h2>
       <p class="closing__body">Reply to the message this page came from with the package you want and when you can send your first batch of footage. Your first edits are back within 14 days.</p>
     </div>
@@ -158,12 +244,30 @@
 
 </main>
 
-<footer class="site-footer">
-  <div class="container site-footer__inner">
-    <span class="wordmark wordmark--sm">Built To Scale</span>
-    <span class="site-footer__legal">&copy; 2026 Auctus Enterprises. All prices in USD.</span>
+<footer class="foot">
+  <div class="wrap foot__inner">
+    <span class="wordmark wordmark--sm" data-wordmark>Built To Scale</span>
+    <span class="foot__legal">&copy; 2026 Auctus Enterprises. All prices in USD.</span>
   </div>
 </footer>
+
+<!-- Cloned into a card the first time its Included panel is opened. -->
+<template id="tpl-included">
+  <div class="inc">
+    <p class="inc__label">Five-point quality screen</p>
+    <ol class="inc__list">
+      <li>Captions proofread and spelt correctly</li>
+      <li>Colour grade applied and consistent across the batch</li>
+      <li>Audio optimised to the highest quality the source footage allows</li>
+      <li>No watermarks, outros or editor credits</li>
+      <li>Clean cuts, correctly placed</li>
+    </ol>
+    <p class="inc__label">One revision round</p>
+    <p class="inc__p">One round of preference-based changes per video, requested by the owner the content is produced for. Anything caught by our own quality screen is corrected before delivery at no cost — that never counts as your round.</p>
+    <p class="inc__label">14-day guarantee</p>
+    <p class="inc__p">Every video is edited and returned within 14 days of receiving your footage. If we miss it, that video is edited free and we send you $100.</p>
+  </div>
+</template>
 
 <script src="script.js" defer></script>
 </body>

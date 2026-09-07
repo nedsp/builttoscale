@@ -1,44 +1,24 @@
 /* ══════════════════════════════════════════════════════════════
-   BUILT TO SCALE — page content + behaviour
-   Everything you are likely to change lives in the EDIT HERE block.
+   BUILT TO SCALE — content + behaviour. Vanilla JS, no deps.
+   Everything you edit lives in the EDIT HERE block.
    ══════════════════════════════════════════════════════════════ */
 
 /* ─────────────────── EDIT HERE ─────────────────── */
 
-/* Client strip. Plain text names, shown in Anton uppercase.
-   Replace these six placeholders with real client names. */
-const CLIENTS = [
-  'Client One',
-  'Client Two',
-  'Client Three',
-  'Client Four',
-  'Client Five',
-  'Client Six'
-];
+/* Client strip. Replace these six placeholders with real names. */
+const CLIENTS = ['Client One','Client Two','Client Three','Client Four','Client Five','Client Six'];
 
-/* Optional: drop SVG/PNG logos into assets/logos/ and list them here.
-   If this array has any entries it REPLACES the text names above.
-   Example: [{ file: 'acme.svg', name: 'Acme' }, { file: 'nova.png', name: 'Nova' }] */
+/* Optional logos in assets/logos/. A non-empty list replaces the names above.
+   e.g. [{ file:'acme.svg', name:'Acme' }] */
 const CLIENT_LOGOS = [];
 
-/* The three lines shown under INCLUDED on every card. */
-const INCLUDED = [
-  { label: 'Five-point quality screen', text: 'every video is checked before delivery', href: '#quality' },
-  { label: 'One revision round',        text: 'preference changes, made once, by you',  href: '#guarantee' },
-  { label: '14-day guarantee',          text: 'late means edited free plus $100 to you', href: '#guarantee' }
-];
-
-/* The four packages, rendered left to right.
-   pill: null, or { text: '…', style: 'flagship' | 'popular' }
-   flagship: true renders the card on charcoal instead of white. */
+/* format drives the filter pills: 'short' | 'long' | 'both' */
 const PACKAGES = [
   {
-    name: 'Full Content Engine',
-    tagline: 'Post every day. Own short-form and YouTube.',
-    price: '$2,000',
-    period: '/mo',
-    flagship: true,
+    name: 'Full Content Engine', format: 'both', flagship: true,
     pill: { text: 'Everything', style: 'flagship' },
+    tagline: 'Post every day. Own short-form and YouTube.',
+    price: '$2,000', period: '/mo',
     features: [
       '30 high-retention short-form edits per month — Reels, TikTok and Shorts, fully edited start to finish and delivered platform-ready',
       '4 fully produced long-form YouTube videos (up to 10 minutes each) — structured for watch time, not just trimmed',
@@ -47,24 +27,19 @@ const PACKAGES = [
     ]
   },
   {
-    name: 'Short-Form Engine',
-    tagline: 'One post a day, every day, handled.',
-    price: '$1,400',
-    period: '/mo',
-    flagship: false,
+    name: 'Short-Form Engine', format: 'short', flagship: false,
     pill: { text: 'Most popular', style: 'popular' },
+    tagline: 'One post a day, every day, handled.',
+    price: '$1,400', period: '/mo',
     features: [
       '30 high-retention short-form edits per month — Reels, TikTok and Shorts, fully edited start to finish and delivered platform-ready',
       'Every edit includes dynamic captions, colour grade, audio clean-up and tight pacing'
     ]
   },
   {
-    name: 'Long-Form Engine',
+    name: 'Long-Form Engine', format: 'long', flagship: false, pill: null,
     tagline: 'A new long-form video on your channel every week.',
-    price: '$900',
-    period: '/mo',
-    flagship: false,
-    pill: null,
+    price: '$900', period: '/mo',
     features: [
       '4 fully produced long-form YouTube videos (up to 10 minutes each) — structured for watch time, not just trimmed',
       '4 custom click-optimised thumbnails, designed to match each video',
@@ -72,12 +47,9 @@ const PACKAGES = [
     ]
   },
   {
-    name: 'Short-Form Ignition',
+    name: 'Short-Form Ignition', format: 'short', flagship: false, pill: null,
     tagline: 'Post every other day. Build the habit.',
-    price: '$800',
-    period: '/mo',
-    flagship: false,
-    pill: null,
+    price: '$800', period: '/mo',
     features: [
       '15 high-retention short-form edits per month — Reels, TikTok and Shorts, fully edited start to finish and delivered platform-ready',
       'Every edit includes dynamic captions, colour grade, audio clean-up and tight pacing'
@@ -85,7 +57,14 @@ const PACKAGES = [
   }
 ];
 
-/* Hero video. Files live in assets/video/. See README for the ffmpeg commands. */
+/* IN NUMBERS. value: null renders the literal placeholder "[X]" and skips the
+   count-up. Put a number in and it counts from 0 on scroll. */
+const STATS = [
+  { value: null, suffix: '+', label: 'videos delivered' },
+  { value: null, suffix: '',  label: 'day average turnaround' },
+  { value: null, suffix: '+', label: 'clients served' }
+];
+
 const HERO_SOURCES = [
   { src: 'assets/video/hero-montage.webm', type: 'video/webm' },
   { src: 'assets/video/hero-montage.mp4',  type: 'video/mp4'  }
@@ -94,193 +73,403 @@ const HERO_SOURCES = [
 /* ───────────────── END EDIT HERE ───────────────── */
 
 
-(function () {
+(() => {
   'use strict';
-
   document.documentElement.classList.add('js');
 
-  const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
-  const isSmallScreen = window.matchMedia('(max-width: 767px)');
+  const $  = (s, r = document) => r.querySelector(s);
+  const $$ = (s, r = document) => [...r.querySelectorAll(s)];
+  const RM = matchMedia('(prefers-reduced-motion: reduce)');
+  const SMALL = matchMedia('(max-width: 767px)');
+  const IO = 'IntersectionObserver' in window;
+  const obs = (cb, o) => new IntersectionObserver(cb, o);
+  const esc = s => String(s).replace(/[&<>"']/g,
+    c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
 
-  const esc = (s) => String(s).replace(/[&<>"']/g, (c) => (
-    { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]
-  ));
+  /* ── Collapsibles: Included panels + FAQ ── */
+  const setOpen = (btn, panel, open, init) => {
+    btn.setAttribute('aria-expanded', String(open));
+    if (open) {
+      if (init) init();
+      panel.style.maxHeight = panel.scrollHeight + 'px';
+    } else {
+      panel.style.maxHeight = panel.scrollHeight + 'px';
+      void panel.offsetHeight;                    // reflow so 0 animates
+      panel.style.maxHeight = '0px';
+    }
+  };
 
-  /* ── Packages ───────────────────────────────────────────── */
-  function renderPackages() {
-    const grid = document.getElementById('packages-grid');
+  /* One open at a time. items: [{btn, panel, init?}] */
+  const accordion = items => items.forEach(it => {
+    it.panel.addEventListener('transitionend', e => {   // release the cap when open
+      if (e.propertyName === 'max-height' && it.btn.getAttribute('aria-expanded') === 'true')
+        it.panel.style.maxHeight = 'none';
+    });
+    it.btn.addEventListener('click', () => {
+      const open = it.btn.getAttribute('aria-expanded') === 'true';
+      items.forEach(o => {
+        if (o !== it && o.btn.getAttribute('aria-expanded') === 'true') setOpen(o.btn, o.panel, false);
+      });
+      setOpen(it.btn, it.panel, !open, it.init);
+      it.init = null;
+    });
+  });
+
+  /* ── Arrow-key nav for both segmented controls ── */
+  const roving = (box, sel, activate) => {
+    const btns = $$(sel, box);
+    box.addEventListener('keydown', e => {
+      const i = btns.indexOf(document.activeElement);
+      if (i < 0) return;
+      const n = /ArrowRight|ArrowDown/.test(e.key) ? i + 1
+              : /ArrowLeft|ArrowUp/.test(e.key)    ? i - 1
+              : e.key === 'Home' ? 0 : e.key === 'End' ? btns.length - 1 : null;
+      if (n === null) return;
+      e.preventDefault();
+      const t = btns[(n + btns.length) % btns.length];
+      t.focus();
+      activate?.(t);
+    });
+    return btns;
+  };
+
+  /* ── Count-up. Width is locked first, so it never shifts. ── */
+  const countTo = (el, to, dur, prefix = '', suffix = '') => {
+    if (RM.matches) return;
+    el.style.minWidth = el.offsetWidth + 'px';
+    const t0 = performance.now();
+    const step = now => {
+      const p = Math.min((now - t0) / dur, 1);
+      el.textContent = prefix + Math.round(to * (1 - (1 - p) ** 3)) + suffix;
+      if (p < 1) requestAnimationFrame(step);
+    };
+    requestAnimationFrame(step);
+  };
+
+  /* ══ PACKAGES ══ */
+  const renderPackages = () => {
+    const grid = $('#packages-grid');
     if (!grid) return;
 
-    grid.innerHTML = PACKAGES.map((pkg, i) => {
-      const id = 'pkg-' + i;
-      // Cards without a pill get an invisible one so names and prices stay
-      // on the same baseline across a row (hidden entirely when stacked).
-      const pill = pkg.pill
-        ? `<p class="pkg__pill pkg__pill--${esc(pkg.pill.style)}">${esc(pkg.pill.text)}</p>`
-        : '<p class="pkg__pill pkg__pill--spacer" aria-hidden="true">&nbsp;</p>';
-
-      const features = pkg.features
-        .map((f) => `<li class="pkg__feature">${esc(f)}</li>`)
-        .join('');
-
-      const included = INCLUDED
-        .map((inc) => `<a class="pkg__inc" href="${esc(inc.href)}"><strong>${esc(inc.label)}</strong> — ${esc(inc.text)}</a>`)
-        .join('');
-
-      return `
-      <article class="pkg${pkg.flagship ? ' pkg--flagship' : ''} reveal" aria-labelledby="${id}-name">
-        ${pill}
-        <h3 class="pkg__name" id="${id}-name">${esc(pkg.name)}</h3>
-        <p class="pkg__tagline">${esc(pkg.tagline)}</p>
-
+    grid.innerHTML = PACKAGES.map((p, i) => `
+      <article class="pkg${p.flagship ? ' pkg--flagship' : ''}" data-format="${esc(p.format)}" aria-labelledby="pk${i}">
+        ${p.pill
+          ? `<p class="pkg__pill pkg__pill--${esc(p.pill.style)}">${esc(p.pill.text)}</p>`
+          : '<p class="pkg__pill pkg__pill--spacer" aria-hidden="true">&nbsp;</p>'}
+        <h3 class="pkg__name" id="pk${i}">${esc(p.name)}</h3>
+        <p class="pkg__tagline">${esc(p.tagline)}</p>
         <div class="pkg__price-row">
-          <p class="pkg__price">
-            <span class="pkg__amount">${esc(pkg.price)}</span>
-            <span class="pkg__period">${esc(pkg.period)}</span>
-          </p>
+          <p class="pkg__price"><span class="pkg__amount">${esc(p.price)}</span><span class="pkg__period">${esc(p.period)}</span></p>
           <span class="pkg__rev">Revenue share</span>
         </div>
-
-        <div class="pkg__rule" role="presentation"></div>
-
+        <div class="pkg__rule"></div>
         <p class="pkg__label">What you get</p>
-        <ul class="pkg__features">${features}</ul>
+        <ul class="pkg__features">${p.features.map(f => `<li class="pkg__feature">${esc(f)}</li>`).join('')}</ul>
+        <div class="pkg__rule pkg__rule--tail"></div>
+        <button type="button" class="pkg__toggle" aria-expanded="false" aria-controls="inc${i}">What&rsquo;s included in every package<span class="chev" aria-hidden="true"></span></button>
+        <div class="pkg__panel" id="inc${i}" role="region"></div>
+      </article>`).join('');
 
-        <div class="pkg__rule pkg__rule--tail" role="presentation"></div>
+    // Bodies are cloned from the template on first open.
+    const tpl = $('#tpl-included');
+    accordion($$('.pkg', grid).map(card => {
+      const panel = $('.pkg__panel', card);
+      return {
+        btn: $('.pkg__toggle', card),
+        panel,
+        init: () => { if (!panel.firstChild && tpl) panel.appendChild(tpl.content.cloneNode(true)); }
+      };
+    }));
 
-        <p class="pkg__label">Included</p>
-        <div class="pkg__included">${included}</div>
-      </article>`;
-    }).join('');
-  }
+    grid.setAttribute('data-stagger', '');
+  };
 
-  /* ── Client marquee ─────────────────────────────────────── */
-  function renderClients() {
-    const host = document.getElementById('clients-marquee');
+  const initFilters = () => {
+    const box = $('#filters');
+    if (!box) return;
+    const cards = $$('.pkg'), status = $('#filter-status');
+
+    const apply = btn => {
+      const f = btn.dataset.filter;
+      $$('.seg__btn', box).forEach(b => {
+        const on = b === btn;
+        b.classList.toggle('is-on', on);
+        b.setAttribute('aria-pressed', String(on));
+      });
+      let n = 0;
+      cards.forEach(c => {
+        const match = f === 'all' || c.dataset.format === f;
+        c.classList.toggle('is-dim', !match);
+        if (match) n++;
+      });
+      if (status) status.textContent = `${n} of ${cards.length} packages match ${btn.textContent}.`;
+    };
+
+    roving(box, '.seg__btn', apply).forEach(b => b.addEventListener('click', () => apply(b)));
+  };
+
+  /* ══ CLIENT MARQUEE ══ */
+  const renderClients = () => {
+    const host = $('#marquee');
     if (!host) return;
+    const items = CLIENT_LOGOS.length
+      ? CLIENT_LOGOS.map(l => `<li class="marquee__item"><img class="marquee__logo" src="assets/logos/${esc(l.file)}" alt="${esc(l.name || '')}" width="120" height="28" loading="lazy" decoding="async"></li>`)
+      : CLIENTS.map(c => `<li class="marquee__item">${esc(c)}</li>`);
 
-    const useLogos = CLIENT_LOGOS.length > 0;
-    const items = useLogos
-      ? CLIENT_LOGOS.map((l) =>
-          `<li class="marquee__item"><img class="marquee__logo" src="assets/logos/${esc(l.file)}" alt="${esc(l.name || '')}" width="120" height="28" loading="lazy" decoding="async"></li>`)
-      : CLIENTS.map((c) => `<li class="marquee__item">${esc(c)}</li>`);
-
-    const group = items.join('');
-    const still = prefersReducedMotion.matches;
-
-    host.innerHTML = `
-      <div class="marquee__track">
-        <ul class="marquee__group">${group}</ul>
-        ${still ? '' : `<ul class="marquee__group" aria-hidden="true">${group}</ul>`}
-      </div>`;
-
+    const group = items.join(''), still = RM.matches;
+    host.innerHTML = `<div class="marquee__track"><ul class="marquee__group">${group}</ul>${
+      still ? '' : `<ul class="marquee__group" aria-hidden="true">${group}</ul>`}</div>`;
     host.classList.toggle('is-static', still);
-  }
+    if (still) return;
 
-  /* ── Hero video ─────────────────────────────────────────── */
-  function initHeroVideo() {
-    const video = document.getElementById('hero-video');
-    if (!video) return;
+    // Hover slows to 25%. Rescaling the duration alone would jump, so the
+    // animation's progress is carried across.
+    const track = $('.marquee__track', host);
+    const speed = mult => {
+      const a = track.getAnimations?.()[0];
+      if (!a) return;
+      const d = a.effect.getTiming().duration, nd = 60000 / mult;
+      const p = ((a.currentTime || 0) % d) / d;
+      a.effect.updateTiming({ duration: nd });
+      a.currentTime = p * nd;
+    };
+    host.addEventListener('pointerenter', () => speed(0.25));
+    host.addEventListener('pointerleave', () => speed(1));
+  };
 
-    const conn = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
-    const saveData = !!(conn && conn.saveData);
+  /* ══ STATS ══ */
+  const renderStats = () => {
+    const box = $('#stats');
+    if (!box) return;
+    box.innerHTML = STATS.map(s => {
+      const v = s.value == null ? '[X]' : String(s.value);
+      return `<div class="stat"><p class="stat__v" data-to="${s.value ?? ''}" data-suffix="${esc(s.suffix)}">${esc(v + s.suffix)}</p><p class="stat__l">${esc(s.label)}</p></div>`;
+    }).join('');
+    box.setAttribute('data-stagger', '');
+    if (!IO) return;
 
-    // Poster only: reduced motion, small screens, or a data-saver connection.
-    if (prefersReducedMotion.matches || isSmallScreen.matches || saveData) {
-      video.remove();
-      return;
+    const ob = obs(es => es.forEach(e => {
+      if (!e.isIntersecting) return;
+      ob.unobserve(e.target);
+      const to = e.target.dataset.to;             // '' while the value is [X]
+      if (to !== '') countTo(e.target, +to, 900, '', e.target.dataset.suffix);
+    }), { threshold: 0.4 });
+    $$('.stat__v', box).forEach(el => ob.observe(el));
+  };
+
+  /* ══ STICKY HEADER ══ */
+  const initBar = () => {
+    const bar = $('#bar'), sentinel = $('#hero-sentinel');
+    if (!bar || !IO) return;
+
+    if (sentinel) obs(([e]) => {
+      bar.classList.toggle('is-on', !e.isIntersecting && e.boundingClientRect.top < 0);
+    }, { threshold: 0 }).observe(sentinel);
+
+    const links = {};
+    $$('[data-nav]', bar).forEach(a => { links[a.dataset.nav] = a; });
+    const spy = obs(es => es.forEach(e => {
+      const a = links[e.target.id];
+      if (!a || !e.isIntersecting) return;
+      Object.values(links).forEach(l => l.classList.remove('is-active'));
+      a.classList.add('is-active');
+    }), { rootMargin: '-50% 0px -50% 0px', threshold: 0 });
+    Object.keys(links).forEach(id => {
+      const s = document.getElementById(id);
+      if (s) spy.observe(s);
+    });
+  };
+
+  /* ══ HERO ══ */
+  const initHero = () => {
+    const title = $('[data-split]');
+    let words = [];
+    if (title) {
+      const frag = document.createDocumentFragment();
+      title.textContent.split(/(\s+)/).forEach(p => {
+        if (!p) return;
+        if (/^\s+$/.test(p)) return frag.appendChild(document.createTextNode(p));
+        const s = document.createElement('span');
+        s.className = 'w';
+        s.textContent = p;
+        frag.appendChild(s);
+      });
+      title.textContent = '';
+      title.appendChild(frag);
+      words = $$('.w', title);
     }
 
+    const eyebrow = $('[data-hero="1"]'), sub = $('[data-hero="2"]');
+    if (RM.matches) {
+      [...words, eyebrow, sub].forEach(el => el && (el.style.opacity = 1));
+    } else {
+      const kf = [{ opacity: 0, transform: 'translateY(24px)' }, { opacity: 1, transform: 'none' }];
+      const run = (el, delay) => el?.animate(kf, { duration: 600, delay, easing: 'ease-out', fill: 'forwards' });
+      run(eyebrow, 200);
+      words.forEach((w, i) => run(w, 200 + i * 60));
+      run(sub, 200 + words.length * 60);
+    }
+
+    // Parallax on the media layer (video or poster) + cue fade.
+    const media = $('#hero-media'), cue = $('#cue');
+    const parallax = !RM.matches && !SMALL.matches;
+    let ticking = false;
+    addEventListener('scroll', () => {
+      if (ticking) return;
+      ticking = true;
+      requestAnimationFrame(() => {
+        const y = scrollY;
+        if (parallax && media) media.style.transform = `translate3d(0,${Math.min(y * 0.15, 160)}px,0)`;
+        cue?.classList.toggle('is-off', y > 100);
+        ticking = false;
+      });
+    }, { passive: true });
+  };
+
+  const initHeroVideo = () => {
+    const video = $('#hero-video');
+    if (!video) return;
+    const conn = navigator.connection;
+    if (RM.matches || SMALL.matches || conn?.saveData) return video.remove();
+
     let settled = false;
-    const drop = () => {
-      if (settled) return;
-      settled = true;
-      video.remove(); // the poster stays — it is the .hero__media background
-    };
-    const show = () => {
-      if (settled) return;
-      settled = true;
-      clearTimeout(timer);
-      video.classList.add('is-playing');
-    };
-
-    // 3s budget: if it has not started by then, we stay on the poster.
-    const timer = setTimeout(drop, 3000);
-
+    const drop = () => { if (!settled) { settled = true; video.remove(); } };
+    const show = () => { if (!settled) { settled = true; clearTimeout(timer); video.classList.add('is-playing'); } };
+    const timer = setTimeout(drop, 3000);          // 3s budget, else stay on the poster
     video.addEventListener('playing', show, { once: true });
     video.addEventListener('error', drop, { once: true });
 
-    HERO_SOURCES.forEach((s) => {
-      const source = document.createElement('source');
-      source.src = s.src;
-      source.type = s.type;
-      source.addEventListener('error', () => {
-        // Only give up once every source has failed.
+    HERO_SOURCES.forEach(s => {
+      const el = document.createElement('source');
+      el.src = s.src;
+      el.type = s.type;
+      el.addEventListener('error', () => {
         if (video.networkState === HTMLMediaElement.NETWORK_NO_SOURCE) drop();
       });
-      video.appendChild(source);
+      video.appendChild(el);
     });
-
-    video.muted = true;
-    video.autoplay = true;
-    video.preload = 'metadata';
+    Object.assign(video, { muted: true, autoplay: true, preload: 'metadata' });
     video.load();
+    video.play?.()?.catch(drop);
+  };
 
-    const attempt = video.play();
-    if (attempt && typeof attempt.catch === 'function') attempt.catch(drop);
-  }
+  /* ══ QUALITY SCREEN ══ */
+  const initQuality = () => {
+    const list = $('#qlist');
+    if (!list || RM.matches || !IO) return;
+    const rows = $$('.qrow', list);
+    list.classList.add('is-live');
+    rows[0]?.classList.add('is-active');
 
-  /* ── Scroll reveal ──────────────────────────────────────── */
-  function initReveal() {
-    const targets = document.querySelectorAll('.reveal');
+    // Entries arrive unordered and rows can share the band on a fast scroll,
+    // so track the band and pick the row nearest the middle: exactly one
+    // active, never a skipped row.
+    const inBand = new Set();
+    const ob = obs(es => {
+      es.forEach(e => e.isIntersecting ? inBand.add(e.target) : inBand.delete(e.target));
+      if (!inBand.size) return;                    // between rows: hold the last
+      const mid = innerHeight / 2;
+      let best = null, dist = Infinity;
+      inBand.forEach(r => {
+        const b = r.getBoundingClientRect();
+        const d = Math.abs((b.top + b.bottom) / 2 - mid);
+        if (d < dist) { dist = d; best = r; }
+      });
+      rows.forEach(r => r.classList.toggle('is-active', r === best));
+    }, { rootMargin: '-45% 0px -45% 0px', threshold: 0 });
+    rows.forEach(r => ob.observe(r));
+  };
 
-    if (prefersReducedMotion.matches || !('IntersectionObserver' in window)) {
-      targets.forEach((el) => el.classList.add('is-visible'));
-      return;
+  /* ══ GUARANTEE ══ */
+  const initGuarantee = () => {
+    const card = $('#gcard');
+    if (!card) return;
+    const num = $('[data-count]', card);
+
+    if (IO) {
+      const ob = obs(es => es.forEach(e => {
+        if (!e.isIntersecting) return;
+        ob.unobserve(e.target);
+        card.classList.add('is-in');
+        if (num) countTo(num, +num.dataset.count, 600, num.dataset.prefix);
+      }), { threshold: 0.3 });
+      ob.observe(card);
+    } else {
+      card.classList.add('is-in');
     }
 
-    const observer = new IntersectionObserver((entries) => {
-      entries.forEach((entry) => {
-        if (!entry.isIntersecting) return;
-        entry.target.classList.add('is-visible');
-        observer.unobserve(entry.target);
-      });
-    }, { rootMargin: '0px 0px -8% 0px', threshold: 0.08 });
-
-    targets.forEach((el) => observer.observe(el));
-  }
-
-  /* ── In-page links ──────────────────────────────────────── */
-  function initSmoothScroll() {
-    document.addEventListener('click', (e) => {
-      const link = e.target.closest('a[href^="#"]');
-      if (!link) return;
-
-      const id = link.getAttribute('href').slice(1);
-      if (!id) return;
-
-      const target = document.getElementById(id);
-      if (!target) return;
-
-      e.preventDefault();
-      target.scrollIntoView({
-        behavior: prefersReducedMotion.matches ? 'auto' : 'smooth',
-        block: 'start'
-      });
-      // Keep keyboard focus in step with the scroll.
-      target.setAttribute('tabindex', '-1');
-      target.focus({ preventScroll: true });
+    if (RM.matches) return;
+    card.addEventListener('pointermove', e => {
+      if (innerWidth < 900 || e.pointerType !== 'mouse') return;
+      const r = card.getBoundingClientRect();
+      const x = (e.clientX - r.left) / r.width - .5, y = (e.clientY - r.top) / r.height - .5;
+      card.style.transform = `perspective(1000px) rotateY(${(x * 4).toFixed(2)}deg) rotateX(${(-y * 4).toFixed(2)}deg)`;
     });
-  }
+    card.addEventListener('pointerleave', () => { card.style.transform = ''; });
+  };
+
+  /* ══ COMPARISON TABS ══ */
+  const initTabs = () => {
+    const box = $('#cmp-tabs');
+    if (!box) return;
+    const panels = $$('.cmp__panel');
+    const select = btn => $$('[role="tab"]', box).forEach((b, i) => {
+      const on = b === btn;
+      b.classList.toggle('is-on', on);
+      b.setAttribute('aria-selected', String(on));
+      b.tabIndex = on ? 0 : -1;
+      panels[i].classList.toggle('is-on', on);
+    });
+    roving(box, '[role="tab"]', select).forEach(b => b.addEventListener('click', () => select(b)));
+  };
+
+  /* ══ REVEALS — children stagger 80ms apart ══ */
+  const initReveal = () => {
+    const groups = $$('[data-stagger]');
+    groups.forEach(g => [...g.children].forEach((c, i) => {
+      c.classList.add('rv');
+      c.style.setProperty('--d', i);
+    }));
+    if (RM.matches || !IO) return $$('.rv').forEach(el => el.classList.add('is-in'));
+
+    const ob = obs(es => es.forEach(e => {
+      if (!e.isIntersecting) return;
+      ob.unobserve(e.target);
+      [...e.target.children].forEach((c, i) => {
+        c.classList.add('is-in');
+        // Drop the classes once landed — same end state, nothing moves, but
+        // the card is free again for its own hover/filter transitions.
+        setTimeout(() => c.classList.remove('rv', 'is-in'), 560 + i * 80);
+      });
+    }), { rootMargin: '0px 0px -8% 0px', threshold: .05 });
+    groups.forEach(g => ob.observe(g));
+  };
+
+  /* ══ IN-PAGE LINKS ══ */
+  const initScroll = () => document.addEventListener('click', e => {
+    const a = e.target.closest?.('a[href^="#"]');
+    if (!a) return;
+    const t = document.getElementById(a.getAttribute('href').slice(1));
+    if (!t) return;
+    e.preventDefault();
+    scrollTo({ top: t.getBoundingClientRect().top + scrollY - 72, behavior: RM.matches ? 'auto' : 'smooth' });
+    t.setAttribute('tabindex', '-1');
+    t.focus({ preventScroll: true });
+  });
 
   renderPackages();
   renderClients();
+  renderStats();
+  initFilters();
+  initBar();
+  initHero();
   initHeroVideo();
+  initQuality();
+  initGuarantee();
+  initTabs();
+  accordion($$('.acc__item').map(it => ({ btn: $('.acc__btn', it), panel: $('.acc__panel', it) })));
   initReveal();
-  initSmoothScroll();
+  initScroll();
 
-  // Re-render the strip if the user flips their motion preference mid-session.
-  if (typeof prefersReducedMotion.addEventListener === 'function') {
-    prefersReducedMotion.addEventListener('change', renderClients);
-  }
+  RM.addEventListener?.('change', renderClients);
 })();
