@@ -1,0 +1,61 @@
+# partner/index.html is a generated copy of index.html with its ./ paths
+# bumped to ../ . The pre-commit hook in .githooks/ keeps them in step for
+# local commits; this catches everything else — edits made in GitHub's web
+# editor, or a commit from a clone where the hook was never enabled.
+name: Keep partner page in step
+
+on:
+  push:
+    paths:
+      - index.html
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pages: write
+
+# Two pushes in quick succession must not race each other to push a fix.
+concurrency:
+  group: partner-page-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  regenerate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref_name }}
+
+      - name: Regenerate partner/index.html
+        id: sync
+        run: |
+          mkdir -p partner
+          sed 's|"\./|"../|g' index.html > partner/index.html
+          if git diff --quiet -- partner/index.html; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            echo "Already in step with index.html — nothing to do."
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+            echo "Drifted. Regenerated:"
+            git --no-pager diff --stat -- partner/index.html
+          fi
+
+      - name: Commit the regenerated copy
+        if: steps.sync.outputs.changed == 'true'
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add partner/index.html
+          git commit -m "Regenerate partner/index.html from index.html"
+          git push
+
+      # A push made with GITHUB_TOKEN does not start another workflow, and on
+      # GitHub Pages the branch deploy is itself a workflow — so ask for the
+      # rebuild explicitly, or the fix would sit in the repo unpublished.
+      - name: Ask GitHub Pages to rebuild
+        if: steps.sync.outputs.changed == 'true'
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh api --method POST "repos/${{ github.repository }}/pages/builds"

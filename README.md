@@ -7,6 +7,7 @@ dependencies. Open `index.html` in a browser and it works.
 index.html          structure + all long-form copy (quality, comparison, FAQ)
 partner/index.html  generated copy of index.html — see below, do not hand-edit
 .githooks/          pre-commit hook that keeps that copy in step
+.github/workflows/  the same regeneration, run on push as a backstop
 styles.css          brand tokens + all page styles
 script.js           editable data (packages, clients, stats) + behaviour
 .nojekyll           tells GitHub Pages to serve the files as-is
@@ -153,8 +154,15 @@ From then on, any commit that includes `index.html` regenerates
 `partner/index.html` from the staged version and adds it to the same
 commit. It prints one line when it fires and stays silent otherwise.
 
-If you ever need to do it by hand — or you edited `index.html` through
-GitHub's web editor, which never runs a local hook:
+A GitHub Action covers what the hook cannot see. A local hook only runs on
+your machine, so it misses edits made in GitHub's web editor and commits
+from a clone where the hook was never switched on. On any push that touches
+`index.html`, `.github/workflows/partner-page.yml` regenerates the copy,
+commits it if it drifted, and asks Pages to rebuild. It needs no setup and
+no secrets.
+
+Between the two, the copy stays in step whether you commit locally, from
+another machine, or straight from the browser. To do it by hand anyway:
 
 ```bash
 sed 's|"\./|"../|g' index.html > partner/index.html
