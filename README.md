@@ -4,16 +4,21 @@ A single-page, static pricing site. No frameworks, no build step, no npm
 dependencies. Open `index.html` in a browser and it works.
 
 ```
-index.html      structure + all long-form copy (quality, comparison, FAQ)
-styles.css      brand tokens + all page styles
-script.js       editable data (packages, clients, stats) + behaviour  (~19 KB)
-vercel.json     static hosting config
+index.html          structure + all long-form copy (quality, comparison, FAQ)
+partner/index.html  generated copy of index.html — see below, do not hand-edit
+styles.css          brand tokens + all page styles
+script.js           editable data (packages, clients, stats) + behaviour
+.nojekyll           tells GitHub Pages to serve the files as-is
 assets/
-  video/        hero-montage.mp4 · hero-montage.webm · hero-poster.jpg
-  logos/        optional client logos
-  fonts/        OverusedGrotesk-VF.woff2  ← you supply this
-  og-image.jpg  1200×630 link-preview image
+  video/            hero-montage.mp4 · hero-montage.webm · hero-poster.jpg
+  logos/            optional client logos
+  fonts/            OverusedGrotesk-VF.woff2  ← you supply this
+  og-image.jpg      1200×630 link-preview image
 ```
+
+Every path in the site is relative (`./styles.css`, `../assets/…`), so it
+works from a project page at `username.github.io/repo-name/` as well as from
+a custom domain or a local folder.
 
 ## 1. The font — the one thing to add first
 
@@ -127,16 +132,29 @@ echo -n "yournewphrase2027" | sha256sum
 Use `echo -n`, not `echo` — a trailing newline produces a different hash and
 the password will never match.
 
-### Deep links
+### The /partner/ page
 
-Unlocking sets `?partner` on the URL, which works on any static host.
-`/partner` also works on Vercel, via the rewrite in `vercel.json`. Either
-one, opened in a fresh tab, shows the page in standard mode with the
-password box open — neither bypasses anything.
+`partner/index.html` is a **generated copy** of `index.html` — identical
+except that its six `./` paths point one level up to `../`. GitHub Pages
+cannot rewrite URLs, so partner mode needs a real page at that address.
 
-On **GitHub Pages** there are no rewrites and `vercel.json` is ignored
-entirely (so are its caching headers — Pages sets its own). Use
-`?partner` there; `/partner` will 404.
+**Edit `index.html`, never `partner/index.html`.** After any change to
+`index.html`, regenerate the copy:
+
+```bash
+sed 's|"\./|"../|g' index.html > partner/index.html
+```
+
+Check they still match — this should print nothing but the six path lines:
+
+```bash
+diff index.html partner/index.html
+```
+
+Visiting `/partner/` without unlocking shows the page in **standard** mode
+with the password box open. The address is not the key; the password is.
+Unlocking navigates you to `/partner/`, and the header link navigates back
+to `/`.
 
 ### What a public repo exposes
 
@@ -217,38 +235,45 @@ const CLIENT_LOGOS = [
 Logos render at a uniform 28px height, greyscale, 70% opacity. Supply them
 dark-on-transparent — they sit on warm-white. Six to ten reads best.
 
-## 6. Deploying
+## 6. Deploying to GitHub Pages
 
-**Vercel — two commands:**
+Push the repository to GitHub, then:
 
-```bash
-npm i -g vercel      # once
-vercel --prod
-```
+1. Repository → **Settings** → **Pages**.
+2. Under **Build and deployment**, set **Source** to *Deploy from a branch*.
+3. Pick the branch and the **/ (root)** folder, then **Save**.
 
-Accept the defaults (no framework, no build command, output = project root).
+The site appears at `https://<username>.github.io/<repo-name>/` within a
+minute or two. Every push to that branch redeploys it.
 
-**Netlify — drag and drop:** open <https://app.netlify.com/drop> and drag
-the project folder onto the page.
+There is no build step. `.nojekyll` tells Pages to serve the files exactly
+as they are rather than running them through Jekyll.
 
-**Local preview:**
+**Local preview** — from the project folder:
 
 ```bash
 python3 -m http.server 8000     # then open http://localhost:8000
 ```
 
+Use a server rather than double-clicking `index.html`: over `file://` the
+browser will not serve `partner/` as a directory, so the partner link
+misbehaves. Everything else works either way.
+
 ## 7. Attaching a custom domain
 
-**Vercel:** Project → Settings → Domains → add e.g.
-`editing.yourdomain.com`, then at your registrar add the record Vercel
-shows (a `CNAME` to `cname.vercel-dns.com` for a subdomain, or the `A`
-record for a root domain). HTTPS is automatic.
+Repository → Settings → Pages → **Custom domain**. Enter e.g.
+`editing.yourdomain.com` and save; GitHub writes a `CNAME` file into the
+repository. At your registrar add a `CNAME` record pointing that subdomain
+at `<username>.github.io`. For a root domain, add GitHub's four `A` records
+instead. Tick **Enforce HTTPS** once the certificate is issued (usually
+within the hour).
 
-**Netlify:** Site configuration → Domain management → Add domain, same
-registrar step.
+Nothing in the site needs changing — the paths are relative, so it works at
+`/repo-name/` and at the root of a domain alike.
 
 Once you have a domain, make the two social-preview tags absolute so link
-previews render in iMessage and Slack:
+previews render in iMessage and Slack. Edit them in `index.html`, then
+regenerate `partner/index.html`:
 
 ```html
 <meta property="og:image" content="https://editing.yourdomain.com/assets/og-image.jpg">
@@ -260,8 +285,9 @@ previews render in iMessage and Slack:
 - **Tokens** are at the top of `styles.css`: `--warm-white #FFFCF2`
   (background throughout), `--black #020402`, `--red #C1121F`,
   `--grey #626868`, `--cream #F2E8CF`, plus `--surface #FFFFFF` for cards
-  and inactive pills. Every pairing in use clears WCAG AA; if you change a
-  token, re-check it.
+  and inactive pills and `--red-on-black #ED5140` for small red text on the
+  flagship card (brand red is only 3.3:1 there). Every pairing in use clears
+  WCAG AA; if you change a token, re-check it.
 - **Two contrast-driven deviations from the spec** are commented in place:
   the quality-screen numbers use dimmed `--black` (which renders as a warm
   grey) because `--grey` at the row dim lands at 2.1:1, and inactive rows
@@ -272,6 +298,11 @@ previews render in iMessage and Slack:
   render fully visible with red numbers.
 - Sticky header appears once you pass 80% of the hero. In-page links scroll
   with a 72px offset so the header never covers a heading.
-- The page is `noindex, nofollow` on purpose — it is sent as a private link.
+- The page carries `<meta name="robots" content="noindex, nofollow">`, so
+  search engines skip it even though the site is publicly reachable. That
+  was right when the link was sent privately. If you now want it to show up
+  in search, delete that tag from `index.html` and regenerate
+  `partner/index.html`. Leaving it is harmless — the link still works for
+  anyone you send it to.
 - There is deliberately no button and no form. The closing section tells the
   reader to reply to the message the link came in.

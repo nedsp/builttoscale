@@ -86,6 +86,13 @@ const HERO_SOURCES = [
   'use strict';
   document.documentElement.classList.add('js');
 
+  /* Taken from where this file was loaded, so asset paths resolve the same
+     from the site root and from /partner/. file:// has no directory index,
+     so name index.html explicitly there. */
+  const ROOT = new URL('.', document.currentScript?.src || location.href).href;
+  const page = p => ROOT + p + (location.protocol === 'file:' ? 'index.html' : '');
+  const AT_PARTNER = /\/partner(\/|$)/.test(location.pathname);
+
   const $  = (s, r = document) => r.querySelector(s);
   const $$ = (s, r = document) => [...r.querySelectorAll(s)];
   const RM = matchMedia('(prefers-reduced-motion: reduce)');
@@ -222,7 +229,7 @@ const HERO_SOURCES = [
     const host = $('#marquee');
     if (!host) return;
     const items = CLIENT_LOGOS.length
-      ? CLIENT_LOGOS.map(l => `<li class="marquee__item"><img class="marquee__logo" src="assets/logos/${esc(l.file)}" alt="${esc(l.name || '')}" width="120" height="28" loading="lazy" decoding="async"></li>`)
+      ? CLIENT_LOGOS.map(l => `<li class="marquee__item"><img class="marquee__logo" src="${ROOT}assets/logos/${esc(l.file)}" alt="${esc(l.name || '')}" width="120" height="28" loading="lazy" decoding="async"></li>`)
       : CLIENTS.map(c => `<li class="marquee__item">${esc(c)}</li>`);
 
     const group = items.join(''), still = RM.matches;
@@ -350,7 +357,7 @@ const HERO_SOURCES = [
 
     HERO_SOURCES.forEach(s => {
       const el = document.createElement('source');
-      el.src = s.src;
+      el.src = ROOT + s.src;
       el.type = s.type;
       el.addEventListener('error', () => {
         if (video.networkState === HTMLMediaElement.NETWORK_NO_SOURCE) drop();
@@ -508,10 +515,7 @@ const HERO_SOURCES = [
     document.title = BASE_TITLE + (m === 'partner' ? ' — Partner pricing' : '');
     try {
       if (m === 'partner') sessionStorage.btsPartner = '1'; else delete sessionStorage.btsPartner;
-      history.replaceState({}, '', m === 'partner'
-        ? location.pathname + '?partner'
-        : location.pathname.replace(/partner\/?$/, '') || './');
-    } catch (e) {}                                       // file:// blocks both
+    } catch (e) {}                                       // private mode blocks it
   };
 
   const initPartner = () => {
@@ -525,8 +529,11 @@ const HERO_SOURCES = [
     };
     const close = () => { modal.hidden = true; last?.focus(); };
 
-    $$('#rs-link, #rs-link-foot').forEach(b => b.addEventListener('click', () =>
-      document.documentElement.dataset.mode === 'partner' ? setMode('standard') : open()));
+    $$('#rs-link, #rs-link-foot').forEach(b => b.addEventListener('click', () => {
+      if (document.documentElement.dataset.mode !== 'partner') return open();
+      setMode('standard');
+      location.href = page('');                          // back up to the root page
+    }));
 
     modal.addEventListener('click', e => { if (e.target.closest('[data-close]')) close(); });
     modal.addEventListener('keydown', e => {
@@ -550,8 +557,8 @@ const HERO_SOURCES = [
         return;
       }
       if (hex === PARTNER_HASH) {
-        close(); setMode('partner');
-        $('#packages').scrollIntoView({ behavior: RM.matches ? 'auto' : 'smooth' });
+        setMode('partner');
+        location.href = page('partner/') + '#packages';  // partner mode is a page
       } else {
         err.textContent = "That's not it — check with Ned.";
         input.value = ''; input.focus();
@@ -560,7 +567,7 @@ const HERO_SOURCES = [
     });
 
     if (document.documentElement.dataset.mode === 'partner') setMode('partner');
-    else if (/partner\/?$/.test(location.pathname) || /partner/.test(location.search)) open();
+    else if (AT_PARTNER) open();                         // right page, not unlocked
   };
 
   /* ══ IN-PAGE LINKS ══ */
